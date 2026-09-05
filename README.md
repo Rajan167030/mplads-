@@ -7,6 +7,61 @@ workflow for government officers and analysts.
 Risk scores are **analytical prioritization signals for human investigation**, never
 automated findings of fraud or wrongdoing.
 
+## Screenshots
+
+All screenshots below are from a live run against the real synthetic dataset (9,902
+projects) — not mockups.
+
+### Landing / Sign in
+![Landing page](docs/screenshots/00-landing.png)
+
+### National Overview
+Data quality, entity resolution, and risk summary computed live, plus the contractor
+network graph (highest-risk contractors linked when they share a district + project-type
+niche).
+![National Overview](docs/screenshots/01-overview.png)
+
+### Projects
+![Projects list](docs/screenshots/02-projects.png)
+
+### Project Detail — "Why investigate this project?"
+Narrative explanation generated from the actual contributing risk signals, not
+hard-coded text.
+![Project detail](docs/screenshots/03-project-detail.png)
+
+### Contractor Intelligence
+![Contractors list](docs/screenshots/04-contractors.png)
+![Contractor detail](docs/screenshots/05-contractor-detail.png)
+
+### Geographical Analysis
+Interactive MapLibre GL map, 5,000 geolocated projects colored by risk band, with
+state/risk-band/project-type filters.
+![Geographical analysis map](docs/screenshots/06-geographic.png)
+
+### Financials
+![Financials](docs/screenshots/07-financials.png)
+
+### Pattern Intelligence
+![Pattern intelligence](docs/screenshots/08-patterns.png)
+
+### Risk & Alerts
+![Risk and alerts](docs/screenshots/09-risk-alerts.png)
+
+### Investigations
+![Investigations](docs/screenshots/10-investigations.png)
+
+### Data Quality (with CSV upload)
+![Data quality](docs/screenshots/11-data-quality.png)
+
+### Reports (CSV export)
+![Reports](docs/screenshots/12-reports.png)
+
+### User Management (ADMIN only)
+![User management](docs/screenshots/13-users.png)
+
+### AI Assistant
+![AI assistant](docs/screenshots/14-assistant.png)
+
 ## Stack
 
 - **Frontend**: Next.js (TypeScript, App Router) + Tailwind CSS + shadcn/ui + Recharts + MapLibre GL
