@@ -1,0 +1,38 @@
+# env
+.env
+.env.local
+*.env
+!.env.example
+
+# frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# backend
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.egg-info/
+backend/.pytest_cache/
+
+# ml
+ml/models/*.joblib
+ml/models/*.pkl
+
+# data (raw/processed/synthetic datasets are generated, not committed)
+data/raw/*
+data/processed/*
+data/synthetic/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/synthetic/.gitkeep
+
+# alembic
+backend/alembic/__pycache__/
+
+# os / editor
+.DS_Store
+*.pem

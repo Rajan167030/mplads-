@@ -1,0 +1,43 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from app.core.audit import log_audit_event
+from app.core.db import get_db
+from app.core.deps import require_role
+from app.ml.anomaly_model import run_ml_detection
+from app.ml.evaluation import evaluate
+from app.models.enums import UserRole
+from app.models.user import User
+from app.schemas.ml import MLDetectionRunOut, MLEvaluationOut
+
+router = APIRouter(prefix="/ml", tags=["ml"])
+
+
+@router.post("/run", response_model=MLDetectionRunOut)
+def trigger_ml_detection(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(UserRole.ADMIN, UserRole.ANALYST)),
+) -> MLDetectionRunOut:
+    report = run_ml_detection(db)
+    log_audit_event(db, user.id, "RUN_ML_DETECTION", "RiskSignal", metadata={"anomalies_flagged": report.anomalies_flagged})
+    return MLDetectionRunOut(
+        projects_scored=report.projects_scored,
+        anomalies_flagged=report.anomalies_flagged,
+        feature_names=report.feature_names,
+    )
+
+
+@router.get("/evaluation", response_model=MLEvaluationOut)
+def get_ml_evaluation(db: Session = Depends(get_db)) -> MLEvaluationOut:
+    report = evaluate(db)
+    return MLEvaluationOut(
+        total_projects=report.total_projects,
+        planted_anomalies=report.planted_anomalies,
+        ml_flagged=report.ml_flagged,
+        true_positives=report.true_positives,
+        false_positives=report.false_positives,
+        false_negatives=report.false_negatives,
+        precision=report.precision,
+        recall=report.recall,
+        f1=report.f1,
+    )
