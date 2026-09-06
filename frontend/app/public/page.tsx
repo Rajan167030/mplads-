@@ -1,10 +1,13 @@
 import {
+  ArrowRight,
   BadgeCheck,
   Building2,
   Droplets,
+  FileText,
   GraduationCap,
   HeartPulse,
   Landmark,
+  PlayCircle,
   ShieldCheck,
   Sparkles,
   Waves,
@@ -74,55 +77,129 @@ export default async function PublicPortalPage({
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+      <header id="top" className="relative z-30 border-b border-white/10 bg-dashboard-navy text-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-lg bg-dashboard-navy text-white shadow-sm">
-              <ShieldCheck size={20} />
+            <div className="grid size-11 shrink-0 place-items-center rounded-full border-2 border-dashboard-lime/40 bg-white/5 text-dashboard-lime">
+              <ShieldCheck size={22} />
             </div>
-            <div>
-              <div className="font-display text-sm font-bold tracking-tight sm:text-base">
-                MPLADS <span className="text-dashboard-navy">Intelligence</span>
+            <div className="leading-tight">
+              <div className="text-[10px] font-medium text-slate-300 sm:text-[11px]">Government of India</div>
+              <div className="text-[11px] font-bold sm:text-sm">Ministry of Statistics and Programme Implementation</div>
+              <div className="text-[10px] font-semibold text-dashboard-lime sm:text-[11px]">
+                Members of Parliament Local Area Development Scheme
               </div>
-              <div className="text-[10px] font-medium text-slate-500">Public Transparency Portal</div>
             </div>
           </div>
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Public site navigation">
+            {[
+              ["Home", "#top"],
+              ["About the Scheme", "#about"],
+              ["Dashboard", "/"],
+              ["Citizen Request", "#my-area"],
+            ].map(([label, href], i) => (
+              <a
+                key={label}
+                href={href}
+                className={`rounded-md px-3 py-2 text-xs font-semibold ${
+                  i === 0 ? "text-dashboard-lime" : "text-slate-200 hover:text-white"
+                }`}
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-dashboard-navy px-3 py-2 text-[11px] font-semibold text-white hover:bg-dashboard-deep"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-dashboard-navy hover:bg-slate-100"
           >
-            Authority Sign In →
+            Login
           </Link>
-        </div>
-        <div className="mx-auto mt-3 max-w-6xl border-t border-blue-100 bg-blue-50/80 px-3 py-1.5 text-center text-[11px] font-medium text-blue-900">
-          <span className="mr-2 inline-block size-1.5 rounded-full bg-blue-600" />
-          Public access • No login required • Every number below is live, computed from the current database
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-6xl flex-col gap-7 px-4 py-6 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-dashboard-navy to-dashboard-deep p-7 text-white shadow-xl sm:p-10">
+      <section
+        id="about"
+        className="relative isolate overflow-hidden bg-gradient-to-br from-dashboard-navy via-dashboard-deep to-black text-white"
+      >
+        <div className="dot-grid pointer-events-none absolute inset-0 opacity-40" />
+        <div className="pointer-events-none absolute -right-24 -top-24 size-[420px] rounded-full bg-dashboard-lime/10 blur-3xl" />
+
+        <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-14 sm:px-6 sm:pb-28 sm:pt-20 lg:px-8">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-dashboard-lime/25 bg-dashboard-lime/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-dashboard-lime">
               <Sparkles size={13} /> Public Project Transparency
             </div>
-            <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-5xl">
-              Explore MPLADS Projects Across India
+            <h1 className="mt-5 font-display text-4xl font-bold leading-tight sm:text-5xl">
+              MPLADS: From Local Priorities to{" "}
+              <span className="text-dashboard-lime">National Development</span>
             </h1>
             <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
               See where local infrastructure funds are being spent, how far each project has progressed, and where
               the money currently sits in the funding pipeline — computed live, not a static report.
             </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <a
+                href="#explore"
+                className="inline-flex items-center gap-2 rounded-lg bg-dashboard-lime px-5 py-2.5 text-xs font-bold text-dashboard-navy shadow-md hover:brightness-95"
+              >
+                Explore All Projects <ArrowRight size={15} />
+              </a>
+              <a
+                href="#summary"
+                className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-5 py-2.5 text-xs font-semibold text-white hover:bg-white/10"
+              >
+                View National Summary
+              </a>
+            </div>
+            <p className="mt-5 text-[11px] font-medium text-slate-400">
+              <span className="mr-2 inline-block size-1.5 rounded-full bg-dashboard-lime align-middle" />
+              Public access • No login required • Every number below is live, computed from the current database
+            </p>
           </div>
-        </section>
 
+          <div className="mt-10 flex gap-6 lg:absolute lg:bottom-10 lg:right-8 lg:mt-0">
+            <a
+              href="#documents"
+              className="flex flex-col items-center gap-2 text-[11px] font-medium text-slate-200 hover:text-white"
+            >
+              <span className="grid size-14 place-items-center rounded-full border border-white/15 bg-white/5 text-dashboard-lime">
+                <FileText size={22} />
+              </span>
+              Documents
+            </a>
+            <a
+              href="#videos"
+              className="flex flex-col items-center gap-2 text-[11px] font-medium text-slate-200 hover:text-white"
+            >
+              <span className="grid size-14 place-items-center rounded-full border border-white/15 bg-white/5 text-dashboard-lime">
+                <PlayCircle size={22} />
+              </span>
+              Videos
+            </a>
+          </div>
+        </div>
+
+        <svg
+          viewBox="0 0 1440 80"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-12 w-full sm:h-16"
+        >
+          <path d="M0,40 C360,90 1080,-10 1440,40 L1440,80 L0,80 Z" fill="#f8fafc" />
+          <path d="M0,34 C360,84 1080,-16 1440,34" fill="none" stroke="#FF9933" strokeWidth="3" />
+          <path d="M0,46 C360,96 1080,-4 1440,46" fill="none" stroke="#128807" strokeWidth="3" />
+        </svg>
+      </section>
+
+      <main className="mx-auto flex max-w-6xl flex-col gap-7 px-4 py-6 sm:px-6 lg:px-8">
         {fetchError && (
           <div className="rounded-lg border border-red-100 bg-red-50 p-4 text-sm text-red-700">{fetchError}</div>
         )}
 
         {dataQuality && financials && (
           <>
-            <section>
+            <section id="summary">
               <h2 className="mb-3 font-display text-lg font-bold text-slate-900">National Transparency Summary</h2>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
                 {[

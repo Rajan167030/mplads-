@@ -12,8 +12,9 @@ A real evaluation report, not a placeholder — run it and it connects to the li
 database, loads the actual trained model, and produces:
 - `output/feature_distributions.png` — flagged vs. not-flagged histograms per feature
 - `output/anomaly_score_distribution.png`
-- `output/recall_by_category.png` + `output/report.md` — recall against the planted
-  ground truth, recomputed fresh each run (not copy-pasted from the README)
+- `output/anomaly_score_distribution.png` — anomaly-score distribution from the
+  currently loaded real MPLADS dataset. The production runner does not report
+  precision/recall because the real export has no planted labels.
 
 ```bash
 cd backend && python ../ml/notebooks/model_evaluation.py

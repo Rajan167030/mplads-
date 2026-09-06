@@ -18,6 +18,7 @@ Design notes (see docs/decisions.md for the full rationale):
 """
 
 import csv
+import os
 import random
 import sys
 from dataclasses import dataclass, field
@@ -46,8 +47,8 @@ N_PROJECTS = 10_000
 N_CONTRACTORS = 500
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-RAW_DIR = DATA_DIR / "raw"
-SYNTHETIC_DIR = DATA_DIR / "synthetic"
+RAW_DIR = Path(os.environ.get("MPLADS_SYNTHETIC_RAW_DIR", DATA_DIR / "raw"))
+SYNTHETIC_DIR = Path(os.environ.get("MPLADS_SYNTHETIC_LABEL_DIR", DATA_DIR / "synthetic"))
 
 CONTRACTOR_PREFIXES = [
     "Shree", "Sai", "Om", "National", "United", "Bharat", "Modern", "Regional", "City", "Metro",

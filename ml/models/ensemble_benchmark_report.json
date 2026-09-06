@@ -1,0 +1,88 @@
+{
+  "benchmark_type": "isolated synthetic benchmark only \u2014 never mixed into real training rows",
+  "rows": 10000,
+  "ground_truth_positive_rows": 399,
+  "kept_features": [
+    "cost_ratio",
+    "duration_ratio",
+    "overrun_ratio",
+    "progress_gap",
+    "funding_utilization_gap",
+    "n_payments",
+    "payment_amount_variance",
+    "payment_interval_irregularity",
+    "expenditure_release_mismatch",
+    "data_completeness_score",
+    "duplicate_similarity_score"
+  ],
+  "dropped_features": [
+    "milestone_max_regression",
+    "inspection_max_regression",
+    "contractor_delayed_rate",
+    "contractor_high_risk_rate",
+    "n_milestones",
+    "n_inspections"
+  ],
+  "dbscan_meta": {
+    "eps": 1.3778562390214328,
+    "min_samples": 5,
+    "n_clusters": 6
+  },
+  "results": {
+    "baseline_max_z": {
+      "flagged": 500,
+      "tp": 163,
+      "fp": 337,
+      "fn": 236,
+      "precision": 0.326,
+      "recall": 0.409,
+      "f1": 0.363
+    },
+    "isolation_forest": {
+      "flagged": 500,
+      "tp": 169,
+      "fp": 331,
+      "fn": 230,
+      "precision": 0.338,
+      "recall": 0.424,
+      "f1": 0.376
+    },
+    "autoencoder": {
+      "flagged": 500,
+      "tp": 156,
+      "fp": 344,
+      "fn": 243,
+      "precision": 0.312,
+      "recall": 0.391,
+      "f1": 0.347
+    },
+    "dbscan": {
+      "flagged": 563,
+      "tp": 176,
+      "fp": 387,
+      "fn": 223,
+      "precision": 0.313,
+      "recall": 0.441,
+      "f1": 0.366
+    },
+    "ensemble_any": {
+      "flagged": 862,
+      "tp": 204,
+      "fp": 658,
+      "fn": 195,
+      "precision": 0.237,
+      "recall": 0.511,
+      "f1": 0.324
+    },
+    "ensemble_consensus_2_of_3": {
+      "flagged": 481,
+      "tp": 177,
+      "fp": 304,
+      "fn": 222,
+      "precision": 0.368,
+      "recall": 0.444,
+      "f1": 0.402
+    }
+  },
+  "warning": "Proxy benchmark results on synthetic data; must not be presented as real-data accuracy."
+}

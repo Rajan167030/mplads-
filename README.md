@@ -9,7 +9,7 @@ automated findings of fraud or wrongdoing.
 
 ## Screenshots
 
-All screenshots below are from a live run against the real synthetic dataset (9,902
+All screenshots below are from a live run against the real MPLADS dataset
 projects) — not mockups.
 
 ### Landing / Sign in
@@ -76,7 +76,7 @@ state/risk-band/project-type filters.
 mplads-intelligence/
 ├── frontend/       Next.js app
 ├── backend/        FastAPI app (api, core, models, schemas, services, ml, nlp, graph, risk, ingestion)
-├── data/           raw / processed / synthetic datasets (not committed)
+├── data/           source exports and processed real-data datasets (not committed)
 ├── ml/             notebooks, trained model artifacts, experiments
 ├── docker/         Dockerfiles for the Postgres+PostGIS+pgvector image
 └── docker-compose.yml
@@ -126,20 +126,32 @@ value in `backend/.env`.
 docker compose up --build
 ```
 
-### Synthetic dataset
+### Real MPLADS dataset
 
 With the backend venv active and Postgres migrated (`alembic upgrade head`):
 
 ```bash
 cd backend
-python scripts/generate_synthetic_data.py   # writes data/raw/*.csv + data/synthetic/ground_truth.csv
-python scripts/ingest_synthetic_data.py     # runs the ingestion pipeline, prints the data-quality report
+python scripts/import_real_mplads_data.py   # transforms the source exports into data/raw/real_*.csv
+python scripts/ingest_real_data.py          # replaces prior project data and ingests only real records
+python scripts/train_real_data_local.py     # trains directly from real CSVs; Docker/Postgres not required
+python scripts/evaluate_synthetic_benchmark.py # evaluates the real-trained artifact on isolated labeled synthetic data
 ```
 
-`data/raw/` is what a messy government CSV export would look like — that's the only
-input the ingestion pipeline reads. `data/synthetic/ground_truth.csv` records which
-anomalies were deliberately planted and is kept out of ingestion entirely; it exists
-for model evaluation (precision/recall) once Phase 5's detectors are built.
+The real source exports are under `data/`. The transform preserves the source
+limitations documented in `backend/scripts/import_real_mplads_data.py`; it does not
+invent anomaly labels. `ingest_real_data.py` clears prior project-related records,
+preserves users, and loads only `data/raw/real_projects.csv` and `real_payments.csv`.
+For a standalone ML run without Docker or PostgreSQL, use `train_real_data_local.py`.
+It writes `ml/models/isolation_forest.joblib` and a detailed
+`ml/models/real_data_training_report.json` containing source-column, feature,
+embedding, and model statistics.
+The synthetic benchmark result is proxy-only and is written to
+`ml/models/synthetic_benchmark_report.json`; it must not be presented as
+real-data accuracy. The HTML report is available at
+`ml/models/real_data_training_report.html`, with the sensitivity chart at
+`ml/models/contamination_sensitivity.png` and the human-review queue at
+`ml/models/human_verification_queue.csv`.
 
 ### Entity resolution
 
@@ -195,10 +207,8 @@ This repository is being built in phases (see `docs/`).
   FastAPI skeleton with a DB-connected health check, Next.js + Tailwind + shadcn/ui frontend skeleton.
 - **Phase 2 (data layer)** — done: SQLAlchemy models for all core entities (Project, Contractor,
   Agency, Payment, Milestone, Inspection, Evidence, RiskSignal, Investigation, EntityMatch,
-  AuditLog, IngestionReport, User) + Alembic migrations; a synthetic data generator (10,000
-  projects, 500 contractors, ~106 districts, per-project-type peer cost/duration distributions,
-  multilingual project names, 457 planted anomaly instances across 7 categories with a separate
-  ground-truth file); a CSV ingestion pipeline (column mapping, validation, normalization,
+  AuditLog, IngestionReport, User) + Alembic migrations; a real MPLADS export transform and
+  CSV ingestion pipeline (column mapping, validation, normalization,
   contractor/agency upsert, data-quality report) exposed via `POST /api/ingestion/upload` and
   `GET /api/data-quality`. The ingestion report's `duplicate_candidates` is a coarse same-district
   same-type heuristic, not real identity resolution — see Phase 3.
@@ -373,8 +383,8 @@ This repository is being built in phases (see `docs/`).
 
 ## Where this leaves the project
 
-All 12 phases from the SIH26102 brief are built and verified end to end against the real,
-9,901-project synthetic dataset — not mocked, not hand-waved. Every "done" above was confirmed by
+All 12 phases from the SIH26102 brief are built and verified end to end against the real MPLADS
+dataset — not mocked, not hand-waved. Every "done" above was confirmed by
 actually running the code (migrations applied, pipelines executed, endpoints curled, pages rendered)
 rather than by the code merely compiling. `docs/decisions.md` has the full trail of real bugs found
 and fixed along the way (ADR-001 through ADR-013) — several of which (survivorship bias in delay
@@ -395,7 +405,7 @@ not from reading the code.
   This is presentation, not new detection logic: the underlying financial/execution/spatial signal
   architecture (Phases 4-6) was multi-signal from the start; what changed is that a judge can now
   read the reasoning in five seconds instead of parsing raw signal metadata.
-- **Delhi was entirely missing from the synthetic dataset** — a real data gap the user caught by
+- **Delhi was entirely missing from an earlier generated dataset** — a real data gap the user caught by
   looking at the map, not a display bug (ADR-015). `app/utils/reference_data.py`'s state list had
   15 states and never included Delhi despite it having 7 Lok Sabha + 3 Rajya Sabha MPLADS-eligible
   seats. Added it (7 districts) and regenerated + fully re-ran the pipeline rather than patching it

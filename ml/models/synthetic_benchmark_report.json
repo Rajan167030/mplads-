@@ -1,0 +1,19 @@
+{
+  "benchmark_type": "synthetic labeled benchmark only",
+  "real_model_used": "C:\\Users\\AANANDI\\OneDrive\\Desktop\\sih\\mplads-intelligence\\ml\\models\\isolation_forest.joblib",
+  "rows_loaded": 10000,
+  "ground_truth_positive_rows": 399,
+  "model_predicted_anomalies": 4364,
+  "numeric_categories": [
+    "CONTRACTOR_RISK_PATTERN",
+    "COST_ANOMALY",
+    "DELAY_ANOMALY",
+    "EVIDENCE_ANOMALY",
+    "GEOGRAPHIC_CONCENTRATION",
+    "PAYMENT_PROGRESS_MISMATCH"
+  ],
+  "precision": 0.0775,
+  "recall": 0.8471,
+  "f1": 0.1419,
+  "warning": "These metrics are proxy benchmark results and must not be presented as real-data accuracy."
+}

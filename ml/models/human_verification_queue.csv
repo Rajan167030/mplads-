@@ -1,0 +1,21 @@
+rank,project_id,project_name,district,state,anomaly_score,district_authority_action
+1,WS/MP18198/2025-2026/214766,"Construction of roads, link roads, pathways or any other road with or without drainage system",Prayagraj,Uttar Pradesh,100.0,VERIFY / FALSE_POSITIVE / CONFIRMED
+2,WS/MP507/2025-2026/196288,Lighting of public spaces,Kanpur Nagar,Uttar Pradesh,96.43,VERIFY / FALSE_POSITIVE / CONFIRMED
+3,WS/MP18047/2025-2026/214613,"Construction of roads, link roads, pathways or any other road with or without drainage system",Chandigarh,Chandigarh,95.65,VERIFY / FALSE_POSITIVE / CONFIRMED
+4,WS/MP18162/2025-2026/251135,"Construction of roads, link roads, pathways or any other road with or without drainage system",Bhilwara,Rajasthan,92.79,VERIFY / FALSE_POSITIVE / CONFIRMED
+5,WS/MP18155/2025-2026/257938,Construction of community centers and community halls,Hoshiarpur,Punjab,92.2,VERIFY / FALSE_POSITIVE / CONFIRMED
+6,WS/MP18162/2025-2026/210174,Construction of community centers and community halls,Shahpura,Rajasthan,92.01,VERIFY / FALSE_POSITIVE / CONFIRMED
+7,WS/MP381/2025-2026/254101,Providing CCTV camera system for security of public areas,Amritsar,Punjab,91.57,VERIFY / FALSE_POSITIVE / CONFIRMED
+8,WS/MP18210/2025-2026/258729,"Construction of roads, link roads, pathways or any other road with or without drainage system",Chandauli,Uttar Pradesh,91.46,VERIFY / FALSE_POSITIVE / CONFIRMED
+9,WS/MP18095/2026-2027/246711,Purchase of vans and buses for educational institutions,Alappuzha,Kerala,91.44,VERIFY / FALSE_POSITIVE / CONFIRMED
+10,WS/MP18186/2026-2027/212286,Construction of rooms and halls in school and colleges,Thiruvallur,Tamil Nadu,91.33,VERIFY / FALSE_POSITIVE / CONFIRMED
+11,WS/MP18164/2025-2026/257525,Construction of boundary walls of existing public and community buildings,Hanumangarh,Rajasthan,91.25,VERIFY / FALSE_POSITIVE / CONFIRMED
+12,WS/MP18170/2025-2026/223398,"Construction of roads, link roads, pathways or any other road with or without drainage system",Sikar,Rajasthan,90.91,VERIFY / FALSE_POSITIVE / CONFIRMED
+13,WS/MP18391/2026-2027/283791,"Setting up processing plants, cold storages,etc for fish and fisheries products for community use",Wokha,Nagaland,90.57,VERIFY / FALSE_POSITIVE / CONFIRMED
+14,WS/MP817/2025-2026/229416,Lighting of public spaces,Mirzapur,Uttar Pradesh,89.34,VERIFY / FALSE_POSITIVE / CONFIRMED
+15,WS/MP18170/2025-2026/223400,"Construction of roads, link roads, pathways or any other road with or without drainage system",Sikar,Rajasthan,89.17,VERIFY / FALSE_POSITIVE / CONFIRMED
+16,WS/MP18161/2026-2027/268581,"Construction of roads, link roads, pathways or any other road with or without drainage system",Deeg,Rajasthan,88.89,VERIFY / FALSE_POSITIVE / CONFIRMED
+17,WS/MP755/2025-2026/261328,Construction of bus-sheds or bus-stops,Kancheepuram,Tamil Nadu,88.5,VERIFY / FALSE_POSITIVE / CONFIRMED
+18,WS/MP722/2025-2026/233603,Construction of buildings for community cultural activities,Jhalawar,Rajasthan,88.09,VERIFY / FALSE_POSITIVE / CONFIRMED
+19,WS/MP18269/2026-2027/246434,Construction of rooms and halls in school and colleges,Salem,Tamil Nadu,87.94,VERIFY / FALSE_POSITIVE / CONFIRMED
+20,WS/MP18067/2025-2026/227273,"Construction of roads, link roads, pathways or any other road with or without drainage system",Jind,Haryana,87.87,VERIFY / FALSE_POSITIVE / CONFIRMED

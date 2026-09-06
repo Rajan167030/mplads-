@@ -8,7 +8,7 @@ from app.ml.anomaly_model import run_ml_detection
 from app.ml.evaluation import evaluate
 from app.models.enums import UserRole
 from app.models.user import User
-from app.schemas.ml import MLDetectionRunOut, MLEvaluationOut
+from app.schemas.ml import MLDetectionRunOut, MLEvaluationOut, ModelEvaluationOut
 
 router = APIRouter(prefix="/ml", tags=["ml"])
 
@@ -24,6 +24,9 @@ def trigger_ml_detection(
         projects_scored=report.projects_scored,
         anomalies_flagged=report.anomalies_flagged,
         feature_names=report.feature_names,
+        dropped_features=report.dropped_features,
+        anomalies_by_model=report.anomalies_by_model,
+        consensus_flagged=report.consensus_flagged,
     )
 
 
@@ -40,4 +43,11 @@ def get_ml_evaluation(db: Session = Depends(get_db)) -> MLEvaluationOut:
         precision=report.precision,
         recall=report.recall,
         f1=report.f1,
+        by_model={
+            key: ModelEvaluationOut(
+                flagged=m.flagged, true_positives=m.true_positives, false_positives=m.false_positives,
+                false_negatives=m.false_negatives, precision=m.precision, recall=m.recall, f1=m.f1,
+            )
+            for key, m in report.by_model.items()
+        },
     )

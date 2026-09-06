@@ -32,10 +32,11 @@ from app.risk.rules import (
     p08_progress_inconsistency,
     p09_evidence_anomaly,
     p10_multi_signal,
+    p11_overpayment,
 )
 from app.risk.rules.base import DetectionContext
 
-PER_PROJECT_RULES = [p01_payment_mismatch, p02_cost_anomaly, p03_delay_anomaly]
+PER_PROJECT_RULES = [p01_payment_mismatch, p02_cost_anomaly, p03_delay_anomaly, p11_overpayment]
 BATCH_MODULES = [p04_duplicate, p05_contractor_pattern, p06_geographic_concentration,
                   p07_payment_acceleration, p08_progress_inconsistency, p09_evidence_anomaly]
 

@@ -40,7 +40,7 @@ def detect(project: Project, context: DetectionContext) -> SignalDraft | None:
     if overrun_days <= 0:
         return None  # not yet past its own committed deadline
 
-    peer = context.peer_groups.stats_for(project.project_type, project.state, project.district)
+    peer = context.peer_groups.stats_for(project.project_type, project.state, project.district, project.id)
     if peer is None or peer.duration_median_days <= 0:
         return None
 

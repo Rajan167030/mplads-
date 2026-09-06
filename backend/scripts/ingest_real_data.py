@@ -1,12 +1,4 @@
-"""Ingests the real MPLADS data (already transformed into data/raw/real_*.csv
-by scripts/import_real_mplads_data.py) ALONGSIDE the existing synthetic
-dataset — additive, not a replacement. Uses the same ingestion functions as
-the synthetic pipeline (app.ingestion.pipeline), just pointed at the real
-files, with fresh contractor/agency caches (real data has no contractor
-field, and real "Implementing Agency" strings look nothing like the
-synthetic generator's agency-name templates, so cross-batch name collisions
-are not a practical concern here).
-"""
+"""Replaces the operational dataset with the transformed real MPLADS data."""
 
 import sys
 from pathlib import Path
@@ -15,19 +7,41 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.db import SessionLocal  # noqa: E402
 from app.ingestion.pipeline import ingest_payments, ingest_projects  # noqa: E402
+from app.models.agency import Agency  # noqa: E402
+from app.models.contractor import Contractor  # noqa: E402
+from app.models.entity_match import EntityMatch  # noqa: E402
+from app.models.evidence import Evidence  # noqa: E402
 from app.models.ingestion_report import IngestionReport  # noqa: E402
+from app.models.inspection import Inspection  # noqa: E402
+from app.models.investigation import Investigation  # noqa: E402
+from app.models.milestone import Milestone  # noqa: E402
+from app.models.payment import Payment  # noqa: E402
+from app.models.project import Project  # noqa: E402
+from app.models.risk_signal import RiskSignal  # noqa: E402
 
 RAW_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
+
+
+def clear_operational_data(db) -> None:
+    """Remove prior generated/imported project data while preserving users."""
+    for model in (EntityMatch, Investigation, RiskSignal, Evidence, Inspection, Milestone, Payment):
+        db.query(model).delete(synchronize_session=False)
+    db.query(Project).delete(synchronize_session=False)
+    db.query(Contractor).delete(synchronize_session=False)
+    db.query(Agency).delete(synchronize_session=False)
+    db.query(IngestionReport).delete(synchronize_session=False)
+    db.commit()
 
 
 def main() -> None:
     db = SessionLocal()
     try:
+        clear_operational_data(db)
         project_id_by_external, report = ingest_projects(db, RAW_DIR / "real_projects.csv", {}, {})
         payment_count = ingest_payments(db, RAW_DIR / "real_payments.csv", project_id_by_external)
 
         ingestion_report = IngestionReport(
-            source_filename="real_projects.csv",
+                source_filename="real_projects.csv",
             records_received=report["records_received"],
             valid=report["valid"],
             invalid=report["invalid"],

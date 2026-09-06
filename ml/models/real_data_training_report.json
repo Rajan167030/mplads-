@@ -1,0 +1,388 @@
+{
+  "data_source": {
+    "projects_file": "C:\\Users\\AANANDI\\OneDrive\\Desktop\\sih\\mplads-intelligence\\data\\raw\\real_projects.csv",
+    "payments_file": "C:\\Users\\AANANDI\\OneDrive\\Desktop\\sih\\mplads-intelligence\\data\\raw\\real_payments.csv",
+    "project_rows": 16756,
+    "payment_rows": 9001,
+    "source_project_columns": 20,
+    "source_payment_columns": 7
+  },
+  "training": {
+    "feature_count": 8,
+    "feature_names": [
+      "cost_ratio",
+      "progress_gap",
+      "funding_utilization_gap",
+      "n_payments",
+      "payment_amount_variance",
+      "payment_interval_irregularity",
+      "data_completeness_score",
+      "duplicate_similarity_score"
+    ],
+    "engineered_feature_names": [
+      "cost_ratio",
+      "duration_ratio",
+      "overrun_ratio",
+      "progress_gap",
+      "funding_utilization_gap",
+      "milestone_max_regression",
+      "inspection_max_regression",
+      "contractor_delayed_rate",
+      "contractor_high_risk_rate",
+      "n_payments",
+      "n_milestones",
+      "n_inspections",
+      "payment_amount_variance",
+      "payment_interval_irregularity",
+      "expenditure_release_mismatch",
+      "data_completeness_score",
+      "duplicate_similarity_score"
+    ],
+    "rows_trained": 16756,
+    "anomalies_flagged": 836,
+    "split": {
+      "method": "random project-ID split",
+      "random_state": 42,
+      "test_size": 0.2,
+      "train_rows": 13404,
+      "test_rows": 3352,
+      "rows_match_loaded": true,
+      "train_test_project_id_overlap": 0,
+      "leakage_check": "PASS",
+      "feature_preprocessing_scope": "peer medians and duplicate similarity fitted on train rows, then transformed onto train/test"
+    },
+    "contamination": 0.05,
+    "algorithm": "IsolationForest",
+    "estimators": 200,
+    "standard_scaler": true,
+    "training_log": [
+      {
+        "estimators": 25,
+        "train_mean_anomaly_score": 0.13469531544173563,
+        "train_min_anomaly_score": -0.21797041794682004
+      },
+      {
+        "estimators": 50,
+        "train_mean_anomaly_score": 0.13723728710084643,
+        "train_min_anomaly_score": -0.20781701430060817
+      },
+      {
+        "estimators": 75,
+        "train_mean_anomaly_score": 0.13092752471624666,
+        "train_min_anomaly_score": -0.21080576655571714
+      },
+      {
+        "estimators": 100,
+        "train_mean_anomaly_score": 0.12818850491306852,
+        "train_min_anomaly_score": -0.2181769547058151
+      },
+      {
+        "estimators": 125,
+        "train_mean_anomaly_score": 0.1281478701539493,
+        "train_min_anomaly_score": -0.216709785279383
+      },
+      {
+        "estimators": 150,
+        "train_mean_anomaly_score": 0.12646799812678422,
+        "train_min_anomaly_score": -0.21274040924408977
+      },
+      {
+        "estimators": 175,
+        "train_mean_anomaly_score": 0.1259131939339581,
+        "train_min_anomaly_score": -0.21577218283879096
+      },
+      {
+        "estimators": 200,
+        "train_mean_anomaly_score": 0.12689114130288384,
+        "train_min_anomaly_score": -0.21597822854659388
+      }
+    ],
+    "contamination_sensitivity": [
+      {
+        "contamination": 0.01,
+        "anomalies_flagged": 168,
+        "score_min": -0.11106619077909463,
+        "score_mean": 0.24147574142013745,
+        "score_p05": 0.10690384685904608,
+        "score_p95": 0.3076375266388319
+      },
+      {
+        "contamination": 0.03,
+        "anomalies_flagged": 503,
+        "score_min": -0.17931890526534,
+        "score_mean": 0.17322302693389208,
+        "score_p05": 0.03865113237280071,
+        "score_p95": 0.23938481215258656
+      },
+      {
+        "contamination": 0.05,
+        "anomalies_flagged": 836,
+        "score_min": -0.2179700376381407,
+        "score_mean": 0.13457189456109137,
+        "score_p05": 0.0,
+        "score_p95": 0.20073367977978585
+      },
+      {
+        "contamination": 0.1,
+        "anomalies_flagged": 1651,
+        "score_min": -0.27208745602811113,
+        "score_mean": 0.08045447617112096,
+        "score_p05": -0.05411741838997042,
+        "score_p95": 0.14661626138981543
+      }
+    ],
+    "loss_or_accuracy": "Not applicable: unsupervised anomaly detection has no labels or loss/accuracy metric.",
+    "held_out_test": {
+      "rows": 3352,
+      "anomalies_flagged": 123,
+      "anomaly_score_distribution": {
+        "min": -0.14120046125271402,
+        "max": 0.19316728893299462,
+        "mean": 0.12915744904011153,
+        "median": 0.15102260169192694,
+        "p05": 0.019120796552773458,
+        "p95": 0.18993160734784087
+      }
+    }
+  },
+  "feature_contributions": [
+    {
+      "feature": "payment_interval_irregularity",
+      "relative_contribution": 10.46097448772126
+    },
+    {
+      "feature": "payment_amount_variance",
+      "relative_contribution": 10.338865595260575
+    },
+    {
+      "feature": "cost_ratio",
+      "relative_contribution": 7.74428414636732
+    },
+    {
+      "feature": "n_payments",
+      "relative_contribution": 4.515299048029592
+    },
+    {
+      "feature": "duplicate_similarity_score",
+      "relative_contribution": 1.3044939056344163
+    },
+    {
+      "feature": "data_completeness_score",
+      "relative_contribution": 1.1334870535575652
+    },
+    {
+      "feature": "funding_utilization_gap",
+      "relative_contribution": 1.0218201019634943
+    },
+    {
+      "feature": "progress_gap",
+      "relative_contribution": 1.0096846679428937
+    }
+  ],
+  "human_verification_queue": [
+    {
+      "rank": 1,
+      "project_id": "WS/MP18198/2025-2026/214766",
+      "project_name": "Construction of roads, link roads, pathways or any other road with or without drainage system",
+      "district": "Prayagraj",
+      "state": "Uttar Pradesh",
+      "anomaly_score": 100.0,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 2,
+      "project_id": "WS/MP507/2025-2026/196288",
+      "project_name": "Lighting of public spaces",
+      "district": "Kanpur Nagar",
+      "state": "Uttar Pradesh",
+      "anomaly_score": 96.43,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 3,
+      "project_id": "WS/MP18047/2025-2026/214613",
+      "project_name": "Construction of roads, link roads, pathways or any other road with or without drainage system",
+      "district": "Chandigarh",
+      "state": "Chandigarh",
+      "anomaly_score": 95.65,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 4,
+      "project_id": "WS/MP18162/2025-2026/251135",
+      "project_name": "Construction of roads, link roads, pathways or any other road with or without drainage system",
+      "district": "Bhilwara",
+      "state": "Rajasthan",
+      "anomaly_score": 92.79,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 5,
+      "project_id": "WS/MP18155/2025-2026/257938",
+      "project_name": "Construction of community centers and community halls",
+      "district": "Hoshiarpur",
+      "state": "Punjab",
+      "anomaly_score": 92.2,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 6,
+      "project_id": "WS/MP18162/2025-2026/210174",
+      "project_name": "Construction of community centers and community halls",
+      "district": "Shahpura",
+      "state": "Rajasthan",
+      "anomaly_score": 92.01,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 7,
+      "project_id": "WS/MP381/2025-2026/254101",
+      "project_name": "Providing CCTV camera system for security of public areas",
+      "district": "Amritsar",
+      "state": "Punjab",
+      "anomaly_score": 91.57,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 8,
+      "project_id": "WS/MP18210/2025-2026/258729",
+      "project_name": "Construction of roads, link roads, pathways or any other road with or without drainage system",
+      "district": "Chandauli",
+      "state": "Uttar Pradesh",
+      "anomaly_score": 91.46,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 9,
+      "project_id": "WS/MP18095/2026-2027/246711",
+      "project_name": "Purchase of vans and buses for educational institutions",
+      "district": "Alappuzha",
+      "state": "Kerala",
+      "anomaly_score": 91.44,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 10,
+      "project_id": "WS/MP18186/2026-2027/212286",
+      "project_name": "Construction of rooms and halls in school and colleges",
+      "district": "Thiruvallur",
+      "state": "Tamil Nadu",
+      "anomaly_score": 91.33,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 11,
+      "project_id": "WS/MP18164/2025-2026/257525",
+      "project_name": "Construction of boundary walls of existing public and community buildings",
+      "district": "Hanumangarh",
+      "state": "Rajasthan",
+      "anomaly_score": 91.25,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 12,
+      "project_id": "WS/MP18170/2025-2026/223398",
+      "project_name": "Construction of roads, link roads, pathways or any other road with or without drainage system",
+      "district": "Sikar",
+      "state": "Rajasthan",
+      "anomaly_score": 90.91,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 13,
+      "project_id": "WS/MP18391/2026-2027/283791",
+      "project_name": "Setting up processing plants, cold storages,etc for fish and fisheries products for community use",
+      "district": "Wokha",
+      "state": "Nagaland",
+      "anomaly_score": 90.57,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 14,
+      "project_id": "WS/MP817/2025-2026/229416",
+      "project_name": "Lighting of public spaces",
+      "district": "Mirzapur",
+      "state": "Uttar Pradesh",
+      "anomaly_score": 89.34,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 15,
+      "project_id": "WS/MP18170/2025-2026/223400",
+      "project_name": "Construction of roads, link roads, pathways or any other road with or without drainage system",
+      "district": "Sikar",
+      "state": "Rajasthan",
+      "anomaly_score": 89.17,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 16,
+      "project_id": "WS/MP18161/2026-2027/268581",
+      "project_name": "Construction of roads, link roads, pathways or any other road with or without drainage system",
+      "district": "Deeg",
+      "state": "Rajasthan",
+      "anomaly_score": 88.89,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 17,
+      "project_id": "WS/MP755/2025-2026/261328",
+      "project_name": "Construction of bus-sheds or bus-stops",
+      "district": "Kancheepuram",
+      "state": "Tamil Nadu",
+      "anomaly_score": 88.5,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 18,
+      "project_id": "WS/MP722/2025-2026/233603",
+      "project_name": "Construction of buildings for community cultural activities",
+      "district": "Jhalawar",
+      "state": "Rajasthan",
+      "anomaly_score": 88.09,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 19,
+      "project_id": "WS/MP18269/2026-2027/246434",
+      "project_name": "Construction of rooms and halls in school and colleges",
+      "district": "Salem",
+      "state": "Tamil Nadu",
+      "anomaly_score": 87.94,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    },
+    {
+      "rank": 20,
+      "project_id": "WS/MP18067/2025-2026/227273",
+      "project_name": "Construction of roads, link roads, pathways or any other road with or without drainage system",
+      "district": "Jind",
+      "state": "Haryana",
+      "anomaly_score": 87.87,
+      "district_authority_action": "VERIFY / FALSE_POSITIVE / CONFIRMED"
+    }
+  ],
+  "embedding_model": {
+    "used_in_this_training": false,
+    "model_name": "paraphrase-multilingual-MiniLM-L12-v2",
+    "embedding_dimensions": 384,
+    "transformer_layers": 12,
+    "embedding_column": "projects.name_embedding (database mode)",
+    "note": "Embeddings are used by entity resolution, not as anomaly-model input features."
+  },
+  "feature_source_gaps": [
+    "duration_ratio: near-zero variance across this dataset \u2014 excluded before scaling/fitting",
+    "overrun_ratio: near-zero variance across this dataset \u2014 excluded before scaling/fitting",
+    "milestone_max_regression: near-zero variance across this dataset \u2014 excluded before scaling/fitting",
+    "inspection_max_regression: near-zero variance across this dataset \u2014 excluded before scaling/fitting",
+    "contractor_delayed_rate: near-zero variance across this dataset \u2014 excluded before scaling/fitting",
+    "contractor_high_risk_rate: near-zero variance across this dataset \u2014 excluded before scaling/fitting",
+    "n_milestones: near-zero variance across this dataset \u2014 excluded before scaling/fitting",
+    "n_inspections: near-zero variance across this dataset \u2014 excluded before scaling/fitting",
+    "expenditure_release_mismatch: near-zero variance across this dataset \u2014 excluded before scaling/fitting"
+  ],
+  "score_summary": {
+    "min": -0.2179700376381407,
+    "max": 0.2037679069456651,
+    "mean": 0.13457189456109137
+  }
+}

@@ -1,0 +1,130 @@
+name,level,state,district
+Kamrup Rural Development Agency,DISTRICT,Assam,Kamrup
+Dibrugarh Municipal Corporation,DISTRICT,Assam,Dibrugarh
+Jorhat Municipal Corporation,DISTRICT,Assam,Jorhat
+Nagaon Rural Development Agency,DISTRICT,Assam,Nagaon
+Sivasagar Zilla Parishad,DISTRICT,Assam,Sivasagar
+Tinsukia Rural Development Agency,DISTRICT,Assam,Tinsukia
+Barpeta Rural Development Agency,DISTRICT,Assam,Barpeta
+"Public Works Department, Assam",STATE,Assam,
+Patna Zilla Parishad,DISTRICT,Bihar,Patna
+Gaya Zilla Parishad,DISTRICT,Bihar,Gaya
+Bhagalpur Municipal Corporation,DISTRICT,Bihar,Bhagalpur
+Muzaffarpur Rural Development Agency,DISTRICT,Bihar,Muzaffarpur
+Darbhanga Zilla Parishad,DISTRICT,Bihar,Darbhanga
+Purnia Rural Development Agency,DISTRICT,Bihar,Purnia
+Nalanda Rural Development Agency,DISTRICT,Bihar,Nalanda
+"Public Works Department, Bihar",STATE,Bihar,
+Kohima Zilla Parishad,DISTRICT,Nagaland,Kohima
+Dimapur Zilla Parishad,DISTRICT,Nagaland,Dimapur
+Mokokchung Rural Development Agency,DISTRICT,Nagaland,Mokokchung
+Wokha Zilla Parishad,DISTRICT,Nagaland,Wokha
+Zunheboto Rural Development Agency,DISTRICT,Nagaland,Zunheboto
+Tuensang Zilla Parishad,DISTRICT,Nagaland,Tuensang
+Phek Municipal Corporation,DISTRICT,Nagaland,Phek
+"Public Works Department, Nagaland",STATE,Nagaland,
+Lucknow Zilla Parishad,DISTRICT,Uttar Pradesh,Lucknow
+Kanpur Rural Development Agency,DISTRICT,Uttar Pradesh,Kanpur
+Varanasi Zilla Parishad,DISTRICT,Uttar Pradesh,Varanasi
+Agra Rural Development Agency,DISTRICT,Uttar Pradesh,Agra
+Meerut Zilla Parishad,DISTRICT,Uttar Pradesh,Meerut
+Prayagraj Rural Development Agency,DISTRICT,Uttar Pradesh,Prayagraj
+Gorakhpur Rural Development Agency,DISTRICT,Uttar Pradesh,Gorakhpur
+Bareilly Zilla Parishad,DISTRICT,Uttar Pradesh,Bareilly
+"Public Works Department, Uttar Pradesh",STATE,Uttar Pradesh,
+Cuttack Rural Development Agency,DISTRICT,Odisha,Cuttack
+Puri Municipal Corporation,DISTRICT,Odisha,Puri
+Khordha Municipal Corporation,DISTRICT,Odisha,Khordha
+Ganjam Zilla Parishad,DISTRICT,Odisha,Ganjam
+Sambalpur Rural Development Agency,DISTRICT,Odisha,Sambalpur
+Balasore Rural Development Agency,DISTRICT,Odisha,Balasore
+Mayurbhanj Rural Development Agency,DISTRICT,Odisha,Mayurbhanj
+"Public Works Department, Odisha",STATE,Odisha,
+Ernakulam Zilla Parishad,DISTRICT,Kerala,Ernakulam
+Thiruvananthapuram Zilla Parishad,DISTRICT,Kerala,Thiruvananthapuram
+Kozhikode Municipal Corporation,DISTRICT,Kerala,Kozhikode
+Thrissur Rural Development Agency,DISTRICT,Kerala,Thrissur
+Kollam Municipal Corporation,DISTRICT,Kerala,Kollam
+Kannur Zilla Parishad,DISTRICT,Kerala,Kannur
+Palakkad Zilla Parishad,DISTRICT,Kerala,Palakkad
+"Public Works Department, Kerala",STATE,Kerala,
+Pune Municipal Corporation,DISTRICT,Maharashtra,Pune
+Nagpur Rural Development Agency,DISTRICT,Maharashtra,Nagpur
+Nashik Rural Development Agency,DISTRICT,Maharashtra,Nashik
+Aurangabad Rural Development Agency,DISTRICT,Maharashtra,Aurangabad
+Kolhapur Zilla Parishad,DISTRICT,Maharashtra,Kolhapur
+Solapur Rural Development Agency,DISTRICT,Maharashtra,Solapur
+Thane Rural Development Agency,DISTRICT,Maharashtra,Thane
+Amravati Municipal Corporation,DISTRICT,Maharashtra,Amravati
+"Public Works Department, Maharashtra",STATE,Maharashtra,
+Chennai Municipal Corporation,DISTRICT,Tamil Nadu,Chennai
+Coimbatore Municipal Corporation,DISTRICT,Tamil Nadu,Coimbatore
+Madurai Municipal Corporation,DISTRICT,Tamil Nadu,Madurai
+Tiruchirappalli Zilla Parishad,DISTRICT,Tamil Nadu,Tiruchirappalli
+Salem Rural Development Agency,DISTRICT,Tamil Nadu,Salem
+Tirunelveli Zilla Parishad,DISTRICT,Tamil Nadu,Tirunelveli
+Erode Rural Development Agency,DISTRICT,Tamil Nadu,Erode
+"Public Works Department, Tamil Nadu",STATE,Tamil Nadu,
+Kolkata Zilla Parishad,DISTRICT,West Bengal,Kolkata
+Howrah Rural Development Agency,DISTRICT,West Bengal,Howrah
+Darjeeling Rural Development Agency,DISTRICT,West Bengal,Darjeeling
+Murshidabad Rural Development Agency,DISTRICT,West Bengal,Murshidabad
+Nadia Zilla Parishad,DISTRICT,West Bengal,Nadia
+Bardhaman Municipal Corporation,DISTRICT,West Bengal,Bardhaman
+Malda Municipal Corporation,DISTRICT,West Bengal,Malda
+"Public Works Department, West Bengal",STATE,West Bengal,
+Jaipur Zilla Parishad,DISTRICT,Rajasthan,Jaipur
+Jodhpur Rural Development Agency,DISTRICT,Rajasthan,Jodhpur
+Udaipur Rural Development Agency,DISTRICT,Rajasthan,Udaipur
+Kota Zilla Parishad,DISTRICT,Rajasthan,Kota
+Bikaner Municipal Corporation,DISTRICT,Rajasthan,Bikaner
+Ajmer Municipal Corporation,DISTRICT,Rajasthan,Ajmer
+Alwar Rural Development Agency,DISTRICT,Rajasthan,Alwar
+"Public Works Department, Rajasthan",STATE,Rajasthan,
+Ludhiana Municipal Corporation,DISTRICT,Punjab,Ludhiana
+Amritsar Municipal Corporation,DISTRICT,Punjab,Amritsar
+Jalandhar Municipal Corporation,DISTRICT,Punjab,Jalandhar
+Patiala Rural Development Agency,DISTRICT,Punjab,Patiala
+Bathinda Municipal Corporation,DISTRICT,Punjab,Bathinda
+Mohali Rural Development Agency,DISTRICT,Punjab,Mohali
+Hoshiarpur Zilla Parishad,DISTRICT,Punjab,Hoshiarpur
+"Public Works Department, Punjab",STATE,Punjab,
+Ahmedabad Zilla Parishad,DISTRICT,Gujarat,Ahmedabad
+Surat Rural Development Agency,DISTRICT,Gujarat,Surat
+Vadodara Municipal Corporation,DISTRICT,Gujarat,Vadodara
+Rajkot Zilla Parishad,DISTRICT,Gujarat,Rajkot
+Bhavnagar Rural Development Agency,DISTRICT,Gujarat,Bhavnagar
+Jamnagar Municipal Corporation,DISTRICT,Gujarat,Jamnagar
+Junagadh Zilla Parishad,DISTRICT,Gujarat,Junagadh
+"Public Works Department, Gujarat",STATE,Gujarat,
+Bengaluru Urban Rural Development Agency,DISTRICT,Karnataka,Bengaluru Urban
+Mysuru Municipal Corporation,DISTRICT,Karnataka,Mysuru
+Belagavi Municipal Corporation,DISTRICT,Karnataka,Belagavi
+Mangaluru Rural Development Agency,DISTRICT,Karnataka,Mangaluru
+Hubballi Municipal Corporation,DISTRICT,Karnataka,Hubballi
+Kalaburagi Zilla Parishad,DISTRICT,Karnataka,Kalaburagi
+Tumakuru Rural Development Agency,DISTRICT,Karnataka,Tumakuru
+"Public Works Department, Karnataka",STATE,Karnataka,
+Bhopal Municipal Corporation,DISTRICT,Madhya Pradesh,Bhopal
+Indore Municipal Corporation,DISTRICT,Madhya Pradesh,Indore
+Gwalior Municipal Corporation,DISTRICT,Madhya Pradesh,Gwalior
+Jabalpur Municipal Corporation,DISTRICT,Madhya Pradesh,Jabalpur
+Ujjain Municipal Corporation,DISTRICT,Madhya Pradesh,Ujjain
+Sagar Rural Development Agency,DISTRICT,Madhya Pradesh,Sagar
+Rewa Zilla Parishad,DISTRICT,Madhya Pradesh,Rewa
+"Public Works Department, Madhya Pradesh",STATE,Madhya Pradesh,
+Hyderabad Zilla Parishad,DISTRICT,Telangana,Hyderabad
+Warangal Rural Development Agency,DISTRICT,Telangana,Warangal
+Nizamabad Municipal Corporation,DISTRICT,Telangana,Nizamabad
+Karimnagar Zilla Parishad,DISTRICT,Telangana,Karimnagar
+Khammam Zilla Parishad,DISTRICT,Telangana,Khammam
+Nalgonda Zilla Parishad,DISTRICT,Telangana,Nalgonda
+"Public Works Department, Telangana",STATE,Telangana,
+New Delhi Municipal Corporation,DISTRICT,Delhi,New Delhi
+North Delhi Rural Development Agency,DISTRICT,Delhi,North Delhi
+South Delhi Zilla Parishad,DISTRICT,Delhi,South Delhi
+East Delhi Rural Development Agency,DISTRICT,Delhi,East Delhi
+West Delhi Zilla Parishad,DISTRICT,Delhi,West Delhi
+Central Delhi Rural Development Agency,DISTRICT,Delhi,Central Delhi
+North East Delhi Municipal Corporation,DISTRICT,Delhi,North East Delhi
+"Public Works Department, Delhi",STATE,Delhi,

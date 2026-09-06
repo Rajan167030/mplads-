@@ -17,7 +17,7 @@ CONFIDENCE_BY_LEVEL = {"district": 1.0, "state": 0.85, "national": 0.65}
 
 
 def detect(project: Project, context: DetectionContext) -> SignalDraft | None:
-    peer = context.peer_groups.stats_for(project.project_type, project.state, project.district)
+    peer = context.peer_groups.stats_for(project.project_type, project.state, project.district, project.id)
     if peer is None or peer.cost_median <= 0:
         return None
 

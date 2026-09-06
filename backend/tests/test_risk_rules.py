@@ -1,3 +1,4 @@
+import uuid
 from datetime import date, timedelta
 from types import SimpleNamespace
 
@@ -9,6 +10,7 @@ from app.risk.rules.base import DetectionContext
 
 def make_project(**overrides):
     defaults = dict(
+        id=uuid.uuid4(),
         project_type=ProjectType.COMMUNITY_HALL,
         state="Kerala",
         district="Ernakulam",
@@ -26,7 +28,7 @@ def make_project(**overrides):
 
 def make_context(cost_median=900_000.0, duration_median_days=180, level="district"):
     class FixedPeerIndex(PeerGroupIndex):
-        def stats_for(self, project_type, state, district):
+        def stats_for(self, project_type, state, district, exclude_project_id=None):
             return PeerStats(cost_median=cost_median, duration_median_days=duration_median_days, n=10, level=level)
 
     return DetectionContext(peer_groups=FixedPeerIndex())

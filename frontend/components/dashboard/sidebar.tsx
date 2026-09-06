@@ -8,6 +8,7 @@ import { useMobileNav } from "@/lib/mobile-nav-context";
 const navigation = [
   { label: "Overview", icon: "▦", href: "/dashboard" },
   { label: "Risk & Alerts", icon: "△", href: "/dashboard/risk-alerts" },
+  { label: "ML Evidence & Review", icon: "◈", href: "/dashboard/ml-report" },
   { label: "Projects", icon: "▤", href: "/dashboard/projects" },
   { label: "Financials", icon: "▥", href: "/dashboard/financials" },
   { label: "Geographical Analysis", icon: "⌖", href: "/dashboard/geographic" },
