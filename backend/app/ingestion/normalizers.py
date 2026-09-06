@@ -29,7 +29,7 @@ def parse_date(value) -> date | None:
     text = normalize_text(value)
     if not text:
         return None
-    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d"):
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d", "%d-%b-%Y"):
         try:
             return datetime.strptime(text, fmt).date()
         except ValueError:

@@ -11,10 +11,15 @@ from dataclasses import dataclass, field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.models.assistant_conversation import AssistantConversation
+from app.models.assistant_message import AssistantMessage
 from app.models.project import Project
 from app.models.risk_signal import RiskSignal
 from app.risk.scoring import SOURCE_WEIGHT
 from app.services.llm import LLMNotConfiguredError, LLMRequestError, generate_completion
+
+MAX_HISTORY_MESSAGES = 12  # last N turns kept for context — bounds prompt size on long chats
+MAX_DOCUMENT_CHARS_IN_PROMPT = 20_000
 
 SYSTEM_PROMPT = (
     "You are an assistant for the MPLADS Intelligence Platform, a government project monitoring "
@@ -92,6 +97,48 @@ Risk bands: {band_counts}
 Top signal types: {", ".join(f"{t.value} ({c})" for t, c in signal_rows)}
 """
     return text, {"total_projects": total_projects, "band_counts": band_counts}
+
+
+def answer_in_conversation(db: Session, conversation: AssistantConversation, question: str) -> AssistantResponse:
+    """Same retrieval-grounded approach as answer_question, extended with two
+    things a one-shot query doesn't have: an optional uploaded document's
+    text, and prior turns in this conversation so follow-up questions
+    ("what about the second one?") actually resolve."""
+    if conversation.project_id:
+        built = _build_project_context(db, str(conversation.project_id))
+        context_text, grounded_on = built if built else (_build_portfolio_context(db))
+    else:
+        context_text, grounded_on = _build_portfolio_context(db)
+
+    if conversation.document_text:
+        context_text += (
+            f"\n\nUPLOADED DOCUMENT ({conversation.document_filename}):\n"
+            f"{conversation.document_text[:MAX_DOCUMENT_CHARS_IN_PROMPT]}"
+        )
+        grounded_on["document_filename"] = conversation.document_filename
+
+    prior_messages = (
+        db.query(AssistantMessage)
+        .filter(AssistantMessage.conversation_id == conversation.id)
+        .order_by(AssistantMessage.created_at.desc())
+        .limit(MAX_HISTORY_MESSAGES)
+        .all()
+    )
+    history = [(m.role.value.lower(), m.content) for m in reversed(prior_messages)]
+
+    prompt = f"CONTEXT:\n{context_text}\n\nQUESTION: {question}"
+
+    try:
+        answer = generate_completion(prompt, system=SYSTEM_PROMPT, history=history)
+        return AssistantResponse(llm_configured=True, answer=answer, context_summary=context_text, grounded_on=grounded_on)
+    except LLMNotConfiguredError as exc:
+        return AssistantResponse(
+            llm_configured=False, answer=None, context_summary=context_text, grounded_on=grounded_on, error=str(exc)
+        )
+    except LLMRequestError as exc:
+        return AssistantResponse(
+            llm_configured=True, answer=None, context_summary=context_text, grounded_on=grounded_on, error=str(exc)
+        )
 
 
 def answer_question(db: Session, question: str, project_id: str | None = None) -> AssistantResponse:

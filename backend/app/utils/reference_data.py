@@ -148,6 +148,18 @@ PROJECT_TYPE_PROFILES: dict[ProjectType, ProjectTypeProfile] = {
         {"hi": "सार्वजनिक सुविधा केंद्र", "ta": "பொது வசதி மையம்", "bn": "সর্বজনীন সুবিধা কেন্দ্র",
          "te": "ప్రజా సౌకర్య కేంద్రం"},
     ),
+    # Cost median grounded in the real data: "High Mask LED Light (6 lights)"
+    # completed works consistently disbursed ₹2.83L — small-ticket, fast-turnaround.
+    ProjectType.LIGHTING: ProjectTypeProfile(
+        320_000, 0.35, 2, 0.3, "Public Lighting Installation",
+        {"hi": "सार्वजनिक प्रकाश व्यवस्था", "ta": "பொது விளக்கு அமைப்பு", "bn": "সর্বজনীন আলোকসজ্জা",
+         "te": "ప్రజా వెలుతురు ఏర్పాటు"},
+    ),
+    ProjectType.SPORTS_RECREATION: ProjectTypeProfile(
+        800_000, 0.45, 4, 0.35, "Sports & Recreation Facility",
+        {"hi": "खेल एवं मनोरंजन सुविधा", "ta": "விளையாட்டு மற்றும் பொழுதுபோக்கு வசதி", "bn": "ক্রীড়া ও বিনোদন সুবিধা",
+         "te": "క్రీడలు మరియు వినోద సదుపాయం"},
+    ),
 }
 
 # Romanized spelling variants used for a subset of duplicate-candidate projects,
@@ -161,11 +173,13 @@ ROMANIZED_VARIANTS: dict[ProjectType, list[str]] = {
 STATUS_WEIGHTS = {"SANCTIONED": 0.08, "ONGOING": 0.42, "DELAYED": 0.14, "COMPLETED": 0.36}
 
 PROJECT_TYPE_WEIGHTS = {
-    ProjectType.ROAD: 0.25,
-    ProjectType.SCHOOL: 0.20,
-    ProjectType.COMMUNITY_HALL: 0.15,
-    ProjectType.WATER_INFRASTRUCTURE: 0.15,
-    ProjectType.HEALTH_CENTRE: 0.10,
-    ProjectType.SANITATION: 0.10,
+    ProjectType.ROAD: 0.20,
+    ProjectType.SCHOOL: 0.15,
+    ProjectType.COMMUNITY_HALL: 0.12,
+    ProjectType.WATER_INFRASTRUCTURE: 0.12,
+    ProjectType.HEALTH_CENTRE: 0.08,
+    ProjectType.SANITATION: 0.08,
     ProjectType.PUBLIC_FACILITY: 0.05,
+    ProjectType.LIGHTING: 0.12,
+    ProjectType.SPORTS_RECREATION: 0.08,
 }

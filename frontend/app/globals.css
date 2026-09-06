@@ -71,6 +71,23 @@
   --color-dashboard-lime: var(--dashboard-lime);
   --color-dashboard-red: var(--dashboard-red);
   --color-dashboard-orange: var(--dashboard-orange);
+
+  /* Command-console theme — the landing/sign-in page only (components/site/*).
+     Kept as its own token set rather than repointing --navy/--lime so the
+     rest of the app (dashboard/assistant/public) is completely unaffected. */
+  --color-console-bg: var(--console-bg);
+  --color-console-surface: var(--console-surface);
+  --color-console-surface-strong: var(--console-surface-strong);
+  --color-console-border: var(--console-border);
+  --color-console-border-soft: var(--console-border-soft);
+  --color-console-ink: var(--console-ink);
+  --color-console-ink-muted: var(--console-ink-muted);
+  --color-console-ink-faint: var(--console-ink-faint);
+  --color-console-accent: var(--console-accent);
+  --color-console-accent-soft: var(--console-accent-soft);
+  --color-console-amber: var(--console-amber);
+  --color-console-green: var(--console-green);
+  --font-console-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
@@ -128,6 +145,19 @@
   --dashboard-lime: #8dfc75;
   --dashboard-red: #bf1f26;
   --dashboard-orange: #c96d00;
+
+  --console-bg: #0a0d14;
+  --console-surface: rgba(255, 255, 255, 0.045);
+  --console-surface-strong: rgba(255, 255, 255, 0.07);
+  --console-border: rgba(255, 255, 255, 0.09);
+  --console-border-soft: rgba(255, 255, 255, 0.06);
+  --console-ink: #edeff5;
+  --console-ink-muted: rgba(237, 239, 245, 0.62);
+  --console-ink-faint: rgba(237, 239, 245, 0.38);
+  --console-accent: #7c6fee;
+  --console-accent-soft: rgba(124, 111, 238, 0.14);
+  --console-amber: #f0a544;
+  --console-green: #3ed598;
 }
 
 .dark {
@@ -179,4 +209,25 @@
 .dot-grid {
   background-image: radial-gradient(rgba(164, 239, 99, 0.16) 1px, transparent 1px);
   background-size: 22px 22px;
+}
+
+/* Command-console hero radar graphic (components/site/hero-panel.tsx) */
+@keyframes console-sweep {
+  to { transform: rotate(360deg); }
+}
+@keyframes console-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(124, 111, 238, 0.45); }
+  70% { box-shadow: 0 0 0 10px rgba(124, 111, 238, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(124, 111, 238, 0); }
+}
+.console-radar-sweep {
+  animation: console-sweep 7s linear infinite;
+}
+.console-signal-dot {
+  animation: console-pulse 2.6s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .console-radar-sweep, .console-signal-dot {
+    animation: none;
+  }
 }

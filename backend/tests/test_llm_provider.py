@@ -46,8 +46,8 @@ def test_groq_dispatches_to_openai_compatible_call(monkeypatch):
 
     calls = []
 
-    def fake_call(url, prompt, system, api_key, model):
-        calls.append((url, prompt, system, api_key, model))
+    def fake_call(url, prompt, system, api_key, model, history=None):
+        calls.append((url, prompt, system, api_key, model, history))
         return "fake groq answer"
 
     monkeypatch.setattr("app.services.llm._call_openai_compatible", fake_call)
@@ -56,9 +56,10 @@ def test_groq_dispatches_to_openai_compatible_call(monkeypatch):
 
     assert result == "fake groq answer"
     assert len(calls) == 1
-    url, prompt, system, api_key, model = calls[0]
+    url, prompt, system, api_key, model, history = calls[0]
     assert url == "https://api.groq.com/openai/v1/chat/completions"
     assert prompt == "hello"
     assert system == "be terse"
     assert api_key == "gsk-fake"
     assert model == "llama-3.3-70b-versatile"
+    assert history is None

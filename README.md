@@ -84,29 +84,29 @@ mplads-intelligence/
 
 ## Local development
 
-### 1. Database (Docker)
+The database is hosted on Supabase (Postgres + PostGIS + pgvector, Mumbai
+region) — **Docker is not required for day-to-day development.**
+`backend/.env`'s `DATABASE_URL` already points at it, so you only need to
+start the backend and frontend processes below.
 
-```bash
-cp .env.example .env
-docker compose up -d postgres
-```
+(`docker-compose.yml` and `docker/` still exist for the original local-Postgres
+option, kept as a fallback — see the `POSTGRES_*` vars commented in
+`backend/.env` — but nothing depends on them being run.)
 
-Postgres (with PostGIS + pgvector extensions) is available at `localhost:5433`.
-
-### 2. Backend (FastAPI)
+### 1. Backend (FastAPI)
 
 ```bash
 cd backend
 python -m venv .venv
 ./.venv/Scripts/activate       # Windows
 pip install -r requirements.txt
-cp ../.env.example .env
+cp ../.env.example .env        # then set DATABASE_URL to your own Postgres/Supabase instance
 uvicorn app.main:app --reload
 ```
 
 API docs at `http://localhost:8000/docs`. Health check: `GET /api/health`, `GET /api/health/db`.
 
-### 3. Frontend (Next.js)
+### 2. Frontend (Next.js)
 
 ```bash
 cd frontend
@@ -116,7 +116,11 @@ npm run dev
 
 App at `http://localhost:3000`.
 
-### Full stack via Docker Compose
+### Full stack via Docker Compose (legacy fallback, not required)
+
+Only relevant if you want a fully local Postgres instead of Supabase — e.g.
+offline development. Requires switching `DATABASE_URL` back to the local
+value in `backend/.env`.
 
 ```bash
 docker compose up --build

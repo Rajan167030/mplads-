@@ -9,6 +9,13 @@ class ProjectType(str, enum.Enum):
     HEALTH_CENTRE = "HEALTH_CENTRE"
     SANITATION = "SANITATION"
     PUBLIC_FACILITY = "PUBLIC_FACILITY"
+    # Added when real MPLADS eSAKSHI export data was mixed in — these two
+    # categories alone accounted for ~3,500 of ~9,964 real completed works
+    # ("Lighting of public spaces"/"Street lights" and gym/park/playground/
+    # stadium works), too large and cost-heterogeneous a slice to fold into
+    # PUBLIC_FACILITY without distorting that peer group's statistics.
+    LIGHTING = "LIGHTING"
+    SPORTS_RECREATION = "SPORTS_RECREATION"
 
 
 class ProjectStatus(str, enum.Enum):
@@ -95,3 +102,8 @@ class MatchVerdict(str, enum.Enum):
     MATCH = "MATCH"
     POSSIBLE_MATCH = "POSSIBLE_MATCH"
     DIFFERENT = "DIFFERENT"
+
+
+class MessageRole(str, enum.Enum):
+    USER = "USER"
+    ASSISTANT = "ASSISTANT"

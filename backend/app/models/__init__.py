@@ -1,4 +1,6 @@
 from app.models.agency import Agency
+from app.models.assistant_conversation import AssistantConversation
+from app.models.assistant_message import AssistantMessage
 from app.models.audit_log import AuditLog
 from app.models.contractor import Contractor
 from app.models.entity_match import EntityMatch
@@ -14,6 +16,8 @@ from app.models.user import User
 
 __all__ = [
     "Agency",
+    "AssistantConversation",
+    "AssistantMessage",
     "AuditLog",
     "Contractor",
     "EntityMatch",

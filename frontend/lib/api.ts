@@ -496,6 +496,74 @@ export function getAssistantStatus() {
   return request<{ configured: boolean; provider: string }>("/assistant/status");
 }
 
+// ---------------------------------------------------------------------------
+// AI Assistant — conversations, history, documents
+// ---------------------------------------------------------------------------
+
+export interface AssistantConversationSummary {
+  id: string;
+  title: string;
+  project_id: string | null;
+  document_filename: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssistantMessageOut {
+  id: string;
+  role: "USER" | "ASSISTANT";
+  content: string;
+  grounded_on: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface AssistantConversationDetail extends AssistantConversationSummary {
+  messages: AssistantMessageOut[];
+}
+
+export function listConversations(token: string) {
+  return authRequest<AssistantConversationSummary[]>("/assistant/conversations", token);
+}
+
+export function createConversation(token: string, projectId?: string) {
+  return authRequest<AssistantConversationSummary>("/assistant/conversations", token, {
+    method: "POST",
+    body: JSON.stringify({ project_id: projectId ?? null }),
+  });
+}
+
+export function getConversation(token: string, id: string) {
+  return authRequest<AssistantConversationDetail>(`/assistant/conversations/${id}`, token);
+}
+
+export function deleteConversation(token: string, id: string) {
+  return authRequest<void>(`/assistant/conversations/${id}`, token, { method: "DELETE" });
+}
+
+export interface SendMessageResult {
+  user_message: AssistantMessageOut;
+  assistant_message: AssistantMessageOut;
+  llm_configured: boolean;
+  error: string | null;
+}
+
+export function sendConversationMessage(token: string, conversationId: string, content: string) {
+  return authRequest<SendMessageResult>(`/assistant/conversations/${conversationId}/messages`, token, {
+    method: "POST",
+    body: JSON.stringify({ content }),
+  });
+}
+
+export function uploadConversationDocument(token: string, conversationId: string, file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return uploadRequest<{ filename: string; characters_extracted: number }>(
+    `/assistant/conversations/${conversationId}/document`,
+    token,
+    formData
+  );
+}
+
 export function runRiskScoring(token: string) {
   return authRequest<{ projects_scored: number; band_counts: Record<string, number> }>("/risk-scores/run", token, {
     method: "POST",

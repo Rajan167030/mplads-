@@ -18,7 +18,10 @@ class LLMRequestError(Exception):
     pass
 
 
-def generate_completion(prompt: str, system: str | None = None) -> str:
+def generate_completion(prompt: str, system: str | None = None, history: list[tuple[str, str]] | None = None) -> str:
+    """`history` is prior turns as [(role, content), ...] with role "user" or
+    "assistant", oldest first — lets the model see a real conversation instead
+    of everything getting flattened into one prompt string."""
     settings = get_settings()
 
     if settings.llm_provider == "none" or not settings.llm_api_key:
@@ -27,16 +30,16 @@ def generate_completion(prompt: str, system: str | None = None) -> str:
         )
 
     if settings.llm_provider == "gemini":
-        return _call_gemini(prompt, system, settings.llm_api_key, settings.llm_model)
+        return _call_gemini(prompt, system, settings.llm_api_key, settings.llm_model, history)
     if settings.llm_provider == "openai":
         return _call_openai_compatible(
-            "https://api.openai.com/v1/chat/completions", prompt, system, settings.llm_api_key, settings.llm_model
+            "https://api.openai.com/v1/chat/completions", prompt, system, settings.llm_api_key, settings.llm_model, history
         )
     if settings.llm_provider == "groq":
         # Groq's API is OpenAI-compatible (same request/response shape) — only
         # the base URL and available models differ.
         return _call_openai_compatible(
-            "https://api.groq.com/openai/v1/chat/completions", prompt, system, settings.llm_api_key, settings.llm_model
+            "https://api.groq.com/openai/v1/chat/completions", prompt, system, settings.llm_api_key, settings.llm_model, history
         )
 
     raise LLMNotConfiguredError(
@@ -44,9 +47,16 @@ def generate_completion(prompt: str, system: str | None = None) -> str:
     )
 
 
-def _call_gemini(prompt: str, system: str | None, api_key: str, model: str) -> str:
+def _call_gemini(
+    prompt: str, system: str | None, api_key: str, model: str, history: list[tuple[str, str]] | None = None
+) -> str:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    payload: dict = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
+    contents = []
+    for role, content in history or []:
+        contents.append({"role": "model" if role == "assistant" else "user", "parts": [{"text": content}]})
+    contents.append({"role": "user", "parts": [{"text": prompt}]})
+
+    payload: dict = {"contents": contents}
     if system:
         payload["systemInstruction"] = {"parts": [{"text": system}]}
 
@@ -63,10 +73,19 @@ def _call_gemini(prompt: str, system: str | None, api_key: str, model: str) -> s
         raise LLMRequestError(f"Unexpected Gemini response shape: {data}") from exc
 
 
-def _call_openai_compatible(url: str, prompt: str, system: str | None, api_key: str, model: str) -> str:
+def _call_openai_compatible(
+    url: str,
+    prompt: str,
+    system: str | None,
+    api_key: str,
+    model: str,
+    history: list[tuple[str, str]] | None = None,
+) -> str:
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
+    for role, content in history or []:
+        messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": prompt})
 
     try:
