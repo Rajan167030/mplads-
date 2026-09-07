@@ -9,6 +9,15 @@ class FinancialsByType(BaseModel):
     expenditure_amount: float
 
 
+class FinancialsByState(BaseModel):
+    state: str
+    project_count: int
+    sanctioned_amount: float
+    released_amount: float
+    expenditure_amount: float
+    expenditure_utilization_pct: float  # expenditure / released — for this state alone
+
+
 class FinancialsSummaryOut(BaseModel):
     total_sanctioned: float
     total_released: float
@@ -16,3 +25,4 @@ class FinancialsSummaryOut(BaseModel):
     release_utilization_pct: float  # released / sanctioned
     expenditure_utilization_pct: float  # expenditure / released
     by_type: list[FinancialsByType]
+    by_state: list[FinancialsByState]

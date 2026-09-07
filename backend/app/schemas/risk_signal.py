@@ -3,6 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.graph import ProjectRef
+
 
 class RiskSignalOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -17,6 +19,7 @@ class RiskSignalOut(BaseModel):
     description: str
     evidence: dict
     created_at: datetime
+    project: ProjectRef
 
 
 class RuleEngineRunOut(BaseModel):

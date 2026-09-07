@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>MPLADS Intelligence</title>
+  <rect width="64" height="64" rx="16" fill="#071b31"/>
+  <path d="M32 9 49 15v14c0 11.8-6.9 21.2-17 26-10.1-4.8-17-14.2-17-26V15l17-6Z" fill="#8dfc75"/>
+  <path d="M32 15.5 43 19.4v9.2c0 8.1-4.3 15-11 19-6.7-4-11-10.9-11-19v-9.2l11-3.9Z" fill="#071b31"/>
+  <path d="m25.2 32.3 4.5 4.5 9.8-10" fill="none" stroke="#8dfc75" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+</svg>

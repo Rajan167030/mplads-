@@ -1,3 +1,4 @@
+import { AssistantFab } from "@/components/dashboard/assistant-fab";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { MobileNavProvider } from "@/lib/mobile-nav-context";
@@ -11,6 +12,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/dashboard">)
           <DashboardHeader />
           {children}
         </div>
+        <AssistantFab />
       </div>
     </MobileNavProvider>
   );

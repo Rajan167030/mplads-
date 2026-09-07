@@ -344,6 +344,28 @@ export function getPatternSummary() {
   return request<PatternSummaryResult>("/patterns/summary");
 }
 
+export interface RiskSignalListItem {
+  id: string;
+  project_id: string;
+  signal_type: string;
+  source: string;
+  severity: string;
+  score: number;
+  confidence: number;
+  description: string;
+  evidence: Record<string, unknown>;
+  created_at: string;
+  project: ProjectRef;
+}
+
+export function getRiskSignals(params: { signal_type?: string; source?: string; severity?: string; limit?: number } = {}) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") qs.set(key, String(value));
+  });
+  return request<RiskSignalListItem[]>(`/risk-signals?${qs}`);
+}
+
 // ---------------------------------------------------------------------------
 // Map (Phase 8)
 // ---------------------------------------------------------------------------
@@ -418,6 +440,15 @@ export interface FinancialsByType {
   expenditure_amount: number;
 }
 
+export interface FinancialsByState {
+  state: string;
+  project_count: number;
+  sanctioned_amount: number;
+  released_amount: number;
+  expenditure_amount: number;
+  expenditure_utilization_pct: number;
+}
+
 export interface FinancialsSummary {
   total_sanctioned: number;
   total_released: number;
@@ -425,6 +456,7 @@ export interface FinancialsSummary {
   release_utilization_pct: number;
   expenditure_utilization_pct: number;
   by_type: FinancialsByType[];
+  by_state: FinancialsByState[];
 }
 
 export function getFinancialsSummary() {
