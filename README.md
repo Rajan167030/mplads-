@@ -31,6 +31,17 @@ npm run dev
 All screenshots below are from a live run against the real MPLADS dataset
 projects) — not mockups.
 
+
+
+<img width="1908" height="975" alt="Screenshot 2026-09-07 165411" src="https://github.com/user-attachments/assets/226db245-69da-402e-a038-ec8c0acf3645" />
+
+<img width="1905" height="867" alt="Screenshot 2026-09-07 165431" src="https://github.com/user-attachments/assets/c7d0fd5e-f9a6-437c-9639-59dc867e796d" />
+
+<img width="1901" height="961" alt="Screenshot 2026-09-07 165743" src="https://github.com/user-attachments/assets/a5a2227f-7ad5-45ae-9a47-f2177b68a7cb" />
+
+
+
+
 ### Landing / Sign in
 ![Landing page](docs/screenshots/00-landing.png)
 
