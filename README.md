@@ -70,6 +70,117 @@ state/risk-band/project-type filters.
 - **ML/NLP**: pandas, scikit-learn (Isolation Forest, DBSCAN), sentence-transformers (multilingual embeddings)
 - **LLM**: provider-agnostic abstraction (`backend/app/services/llm`), supports Gemini / OpenAI-compatible APIs
 
+## Technical approach (PPT-ready)
+
+### 1. Architecture overview
+
+```mermaid
+flowchart LR
+    A[Government CSV exports] --> B[Ingestion and validation]
+    B --> C[Normalization and entity resolution]
+    C --> D[(PostgreSQL + PostGIS + pgvector)]
+    D --> E[Rule engine]
+    D --> F[ML anomaly detection]
+    E --> G[Risk scoring engine]
+    F --> G
+    G --> H[FastAPI REST APIs]
+    H --> I[Next.js monitoring dashboard]
+    H --> J[Public transparency portal]
+    H --> K[Reports and investigation workflow]
+```
+
+### 2. End-to-end data pipeline
+
+```text
+Raw government data
+  -> schema mapping and validation
+  -> cleaning, normalization and deduplication
+  -> multilingual entity resolution
+  -> peer-group feature engineering
+  -> rule-based and ML detection
+  -> composite risk score and risk band
+  -> dashboards, maps, reports and human review
+```
+
+### 3. Intelligence layer
+
+- **Entity resolution** uses normalized text, multilingual sentence embeddings,
+  phonetic keys, location, contractor, date and amount similarity to identify
+  possible duplicate projects.
+- **Rule engine** implements explainable domain rules for cost anomalies, delays,
+  payment-progress mismatch, contractor patterns, evidence anomalies and geographic
+  concentration.
+- **ML detection** uses a 12-feature peer-normalized matrix and Isolation Forest to
+  surface unusual multi-feature behaviour not covered by fixed rules.
+- **Risk engine** combines rule, ML and correlated signals into a 0-100 score and
+  LOW/MEDIUM/HIGH/CRITICAL risk band using a monotonic, saturating noisy-OR model.
+- **Human-in-the-loop design** ensures that risk scores prioritize investigation;
+  they are not automated findings of fraud or wrongdoing.
+
+### 4. Technology stack
+
+| Layer | Technologies | Purpose |
+| --- | --- | --- |
+| Web application | Next.js, React, TypeScript, Tailwind CSS, shadcn/ui | Responsive monitoring and public portals |
+| Visual analytics | Recharts, MapLibre GL | Charts, filters and geospatial project analysis |
+| API layer | FastAPI, Uvicorn, Pydantic | Typed REST APIs and OpenAPI documentation |
+| Data access | SQLAlchemy, Alembic | ORM models and schema migrations |
+| Database | PostgreSQL, PostGIS, pgvector | Transactional, spatial and vector similarity queries |
+| Data processing | pandas, NumPy, Shapely | Import, cleaning, validation and feature preparation |
+| NLP/ML | Sentence Transformers, scikit-learn, SciPy, SHAP | Embeddings, anomaly detection and explainability |
+| Security | JWT, bcrypt, role-based access control | Authentication, authorization and protected workflows |
+| AI assistant | Provider abstraction for Gemini/OpenAI-compatible APIs | Document and investigation assistance |
+
+### 5. Backend modules and APIs
+
+- **Ingestion**: CSV upload, column mapping, validation and data-quality reports.
+- **Projects and finance**: project records, fund flow, payment and utilization APIs.
+- **Risk and ML**: signal generation, model execution, risk ranking and explanations.
+- **Geospatial intelligence**: project density and risk-map queries through PostGIS.
+- **Entity resolution**: match generation and possible-duplicate review APIs.
+- **Investigations**: assignment, status tracking, notes and audit history.
+- **Reports and assistant**: CSV/report export and provider-independent AI assistance.
+
+### 6. Security and governance
+
+- JWT-based authentication with bcrypt password hashing.
+- Role-based access for `ADMIN`, `OFFICER`, `ANALYST` and `VIEWER` users.
+- Public portal is separated from authenticated monitoring workflows.
+- Write and trigger operations are protected; read APIs can remain publicly accessible
+  where appropriate for transparency.
+- Investigation actions and system changes are designed for auditability.
+
+### 7. Deployment and operations
+
+```text
+Next.js frontend : http://localhost:3000
+        |
+FastAPI backend  : http://localhost:8000
+        |
+PostgreSQL-compatible database
+        |- PostGIS
+        |- pgvector
+```
+
+- Local development uses separate frontend and backend processes.
+- Docker Compose remains available for a fully local PostgreSQL/PostGIS/pgvector setup.
+- Database migrations are managed with Alembic.
+- FastAPI exposes interactive API documentation at `/docs`.
+- Environment variables control database, CORS, authentication and optional LLM settings.
+
+### 8. Testing and validation
+
+- Ingestion validator tests for malformed and incomplete records.
+- Entity-resolution validation against planted duplicate pairs.
+- Rule-engine tests against known anomaly categories.
+- ML ensemble evaluation using precision, recall and F1.
+- Risk-score explanation and API tests.
+- Frontend TypeScript and ESLint validation.
+
+### One-line technical summary
+
+**Government data -> validation -> entity resolution -> rules + ML -> explainable risk score -> FastAPI -> dashboard, maps, reports and public transparency portal.**
+
 ## Repository layout
 
 ```text
