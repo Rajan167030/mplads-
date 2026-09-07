@@ -7,6 +7,25 @@ workflow for government officers and analysts.
 Risk scores are **analytical prioritization signals for human investigation**, never
 automated findings of fraud or wrongdoing.
 
+## Quick Start
+
+Database is already hosted on Supabase — no Docker/local Postgres needed. Full details in [Local development](#local-development) below.
+
+```bash
+# Backend (FastAPI) — http://localhost:8000, docs at /docs
+cd backend
+python -m venv .venv
+./.venv/Scripts/activate       # Windows; use `source .venv/bin/activate` on macOS/Linux
+pip install -r requirements.txt
+cp ../.env.example .env        # then set DATABASE_URL to your own Postgres/Supabase instance
+uvicorn app.main:app --reload
+
+# Frontend (Next.js) — http://localhost:3000, in a second terminal
+cd frontend
+npm install
+npm run dev
+```
+
 ## Screenshots
 
 All screenshots below are from a live run against the real MPLADS dataset
