@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,6 +16,16 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg2://mplads:mplads@localhost:5433/mplads"
 
     cors_origins: list[str] = ["http://localhost:3000"]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, value: object) -> object:
+        # Accept either a JSON array (`["https://a.com","https://b.com"]`) or a
+        # plain comma-separated string (`https://a.com,https://b.com`), since
+        # host env-var UIs (e.g. Render) don't always let you enter JSON.
+        if isinstance(value, str) and not value.strip().startswith("["):
+            return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
 
     # LLM provider abstraction (see app.services.llm) — no provider is hard-coded.
     llm_provider: str = "none"  # "gemini" | "openai" | "groq" | "none"
