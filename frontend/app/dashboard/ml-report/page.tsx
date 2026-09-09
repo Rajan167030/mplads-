@@ -21,7 +21,7 @@ interface TrainingReport {
     split: { train_rows: number; test_rows: number; train_test_project_id_overlap: number; leakage_check: string };
     held_out_test: { anomalies_flagged: number };
   };
-  feature_source_gaps: { dropped_features: string[]; reason: string };
+  feature_source_gaps: string[];
   human_verification_queue: ReviewItem[];
   feature_contributions: { feature: string; relative_contribution: number }[];
 }
@@ -67,9 +67,8 @@ export default function MlReportPage() {
                   <div className="flex justify-between"><dt className="text-dashboard-muted">Held-out flags</dt><dd className="font-semibold">{report.training.held_out_test.anomalies_flagged.toLocaleString()}</dd></div>
                   <div className="flex justify-between"><dt className="text-dashboard-muted">ID overlap</dt><dd className="font-semibold">{report.training.split.train_test_project_id_overlap}</dd></div>
                 </dl>
-                <h3 className="mt-6 text-sm font-semibold">Pending source data</h3>
-                <p className="mt-2 text-xs text-dashboard-muted">{report.feature_source_gaps.reason}</p>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-dashboard-muted">{report.feature_source_gaps.dropped_features.map((gap) => <li key={gap}>{gap}</li>)}</ul>
+                <h3 className="mt-6 text-sm font-semibold">Excluded features</h3>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-dashboard-muted">{report.feature_source_gaps.map((gap) => <li key={gap}>{gap}</li>)}</ul>
               </section>
               <section className="rounded-lg bg-white p-5 shadow-sm">
                 <h2 className="font-display text-lg font-semibold">Feature contribution</h2>
