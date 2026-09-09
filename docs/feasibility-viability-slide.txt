@@ -1,0 +1,35 @@
+FEASIBILITY & VIABILITY
+
+Technical Feasibility
+- 12/12 phases built & verified on real data (9,901 projects, 500 contractors)
+- Proven stack: FastAPI, PostgreSQL+PostGIS+pgvector, Next.js, scikit-learn
+- Multilingual matching validated - 0.84 similarity score (English to Hindi names)
+- Every risk score explainable - not a black box
+
+Economic Feasibility
+- 100% open-source stack - zero licensing cost
+- Runs on free-tier infra - near-zero cost per constituency
+- Works on existing MPLADS CSV exports - no new data infra needed
+
+Social Feasibility
+- Flags "investigate," never "fraud" - human stays in control
+- Role-based access matches real govt hierarchy
+- Public transparency portal - no login needed
+
+Challenges
+- Inconsistent source data quality
+- Regional-language name matching (romanized text)
+- Risk of false positives from naive thresholds
+- No live government API yet
+
+Strategies
+- Multi-signal fusion - no single false signal decides outcome
+- Every flag validated against ground truth before use
+- Explainability panel - human verifies, model just points
+- Modular ingestion - future live feed plugs in easily
+
+Viability
+- Already scaled to 28 states, 9,901 projects
+- No re-architecture needed to grow
+- Vendor-agnostic AI layer (Gemini/OpenAI/Groq)
+- Full audit trail - deployment-ready for govt use
