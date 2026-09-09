@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowUpRight, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getRiskSignals, type PatternSummary, type RiskSignalListItem } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 const SOURCE_LABELS: Record<string, string> = {
   RULE: "Rule-based",
@@ -58,6 +59,7 @@ function SignalCard({ signal }: { signal: RiskSignalListItem }) {
 }
 
 function DrawerBody({ pattern }: { pattern: PatternSummary }) {
+  const { token } = useAuth();
   const [signals, setSignals] = useState<RiskSignalListItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,17 +67,17 @@ function DrawerBody({ pattern }: { pattern: PatternSummary }) {
     let cancelled = false;
     setSignals(null);
     setError(null);
-    getRiskSignals({ signal_type: pattern.signal_type, source: pattern.source, limit: DRILLDOWN_LIMIT })
+    getRiskSignals({ signal_type: pattern.signal_type, source: pattern.source, limit: DRILLDOWN_LIMIT }, token ?? undefined)
       .then((res) => {
         if (!cancelled) setSignals(res);
       })
       .catch(() => {
-        if (!cancelled) setError("Could not load signals for this pattern.");
+        if (!cancelled) setError(token ? "Could not load signals for this pattern." : "Sign in to view individual risk signals.");
       });
     return () => {
       cancelled = true;
     };
-  }, [pattern.signal_type, pattern.source]);
+  }, [pattern.signal_type, pattern.source, token]);
 
   if (error) return <p className="p-5 text-sm text-red-600">{error}</p>;
 

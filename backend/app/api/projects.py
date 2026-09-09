@@ -1,18 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, or_
+from geoalchemy2 import Geography
+from sqlalchemy import cast, func, or_
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.core.deps import get_current_user_optional
+from app.core.scope import in_scope, scope_filter
 from app.models.evidence import Evidence
 from app.models.inspection import Inspection
 from app.models.milestone import Milestone
 from app.models.payment import Payment
 from app.models.project import Project
 from app.models.risk_signal import RiskSignal
+from app.models.user import User
 from app.schemas.project import (
     EvidenceOut,
     InspectionOut,
     MilestoneOut,
+    NearbyProjectItem,
+    NearbyProjectsOut,
     PaymentOut,
     ProjectDetailOut,
     ProjectListItem,
@@ -36,8 +42,11 @@ def list_projects(
     limit: int = Query(default=50, le=500),
     offset: int = 0,
     db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
 ) -> ProjectListOut:
     query = db.query(Project)
+    if user:
+        query = scope_filter(query, user)
 
     if state:
         query = query.filter(Project.state == state)
@@ -85,10 +94,63 @@ def list_projects(
     return ProjectListOut(total=total, limit=limit, offset=offset, items=items)
 
 
+@router.get("/nearby", response_model=NearbyProjectsOut)
+def nearby_projects(
+    lat: float = Query(..., ge=-90, le=90),
+    lng: float = Query(..., ge=-180, le=180),
+    limit: int = Query(default=10, le=50),
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
+) -> NearbyProjectsOut:
+    """Nearest monitored projects to a citizen's device location — powers
+    the public portal's "use my location" area recommendation and the
+    complaint entry point's nearby-project picker. Ordered via the geom
+    column's <-> KNN operator so it hits the existing GiST index rather than
+    scanning every project's distance."""
+    point = func.ST_SetSRID(func.ST_MakePoint(lng, lat), 4326)
+    distance_m = func.ST_Distance(cast(Project.geom, Geography), cast(point, Geography))
+
+    query = db.query(Project, distance_m.label("distance_m")).filter(Project.geom.isnot(None))
+    if user:
+        query = scope_filter(query, user)
+    # Order by the KNN "<->" operator (not the exact geography distance) so
+    # this hits the geom column's GiST index instead of scanning every row.
+    rows = query.order_by(Project.geom.op("<->")(point)).limit(limit).all()
+
+    projects = [
+        NearbyProjectItem(
+            id=p.id,
+            external_project_id=p.external_project_id,
+            project_name=p.project_name,
+            project_type=p.project_type.value,
+            state=p.state,
+            district=p.district,
+            constituency=p.constituency,
+            status=p.status.value,
+            sanctioned_amount=float(p.sanctioned_amount),
+            physical_progress=p.physical_progress,
+            distance_km=round(float(dist_m) / 1000, 2),
+        )
+        for p, dist_m in rows
+    ]
+
+    nearest = projects[0] if projects else None
+    return NearbyProjectsOut(
+        recommended_state=nearest.state if nearest else None,
+        recommended_district=nearest.district if nearest else None,
+        nearest_distance_km=nearest.distance_km if nearest else None,
+        projects=projects,
+    )
+
+
 @router.get("/{project_id}", response_model=ProjectDetailOut)
-def get_project(project_id: str, db: Session = Depends(get_db)) -> ProjectDetailOut:
+def get_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
+) -> ProjectDetailOut:
     project = db.get(Project, project_id)
-    if not project:
+    if not project or (user and not in_scope(project, user)):
         raise HTTPException(status_code=404, detail="Project not found")
 
     signal_count = db.query(func.count(RiskSignal.id)).filter(RiskSignal.project_id == project.id).scalar() or 0
@@ -103,6 +165,8 @@ def get_project(project_id: str, db: Session = Depends(get_db)) -> ProjectDetail
         state=project.state,
         district=project.district,
         constituency=project.constituency,
+        mp_name=project.mp_name,
+        data_source=project.data_source.value,
         latitude=project.latitude,
         longitude=project.longitude,
         sanctioned_amount=float(project.sanctioned_amount),
@@ -126,9 +190,13 @@ def get_project(project_id: str, db: Session = Depends(get_db)) -> ProjectDetail
 
 
 @router.get("/{project_id}/timeline", response_model=ProjectTimelineOut)
-def get_project_timeline(project_id: str, db: Session = Depends(get_db)) -> ProjectTimelineOut:
+def get_project_timeline(
+    project_id: str,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
+) -> ProjectTimelineOut:
     project = db.get(Project, project_id)
-    if not project:
+    if not project or (user and not in_scope(project, user)):
         raise HTTPException(status_code=404, detail="Project not found")
 
     payments = db.query(Payment).filter(Payment.project_id == project_id).order_by(Payment.payment_date).all()

@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.audit import log_audit_event
 from app.core.db import get_db
-from app.core.deps import require_role
+from app.core.deps import get_current_user, require_role
+from app.core.scope import scope_filter
 from app.models.enums import UserRole
+from app.models.project import Project
 from app.models.risk_signal import RiskSignal
 from app.models.user import User
 from app.risk.engine import run_rule_engine
@@ -17,7 +19,7 @@ router = APIRouter(prefix="/risk-signals", tags=["risk-signals"])
 @router.post("/run", response_model=RuleEngineRunOut)
 def trigger_rule_engine(
     db: Session = Depends(get_db),
-    user: User = Depends(require_role(UserRole.ADMIN, UserRole.ANALYST)),
+    user: User = Depends(require_role(UserRole.MINISTRY)),
 ) -> RuleEngineRunOut:
     report = run_rule_engine(db)
     log_audit_event(db, user.id, "RUN_RULE_ENGINE", "RiskSignal", metadata={"signals_created": report.signals_created})
@@ -37,8 +39,14 @@ def list_risk_signals(
     limit: int = Query(default=50, le=500),
     offset: int = 0,
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> list[RiskSignalOut]:
-    query = db.query(RiskSignal).options(joinedload(RiskSignal.project))
+    query = (
+        db.query(RiskSignal)
+        .join(Project, Project.id == RiskSignal.project_id)
+        .options(joinedload(RiskSignal.project))
+    )
+    query = scope_filter(query, user)
     if project_id:
         query = query.filter(RiskSignal.project_id == project_id)
     if signal_type:

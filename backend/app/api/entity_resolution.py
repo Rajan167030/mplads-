@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import log_audit_event
 from app.core.db import get_db
-from app.core.deps import require_role
+from app.core.deps import get_current_user, require_role
 from app.models.entity_match import EntityMatch
 from app.models.enums import UserRole
 from app.models.user import User
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/entity-resolution", tags=["entity-resolution"])
 @router.post("/run", response_model=EntityResolutionRunOut)
 def trigger_entity_resolution(
     db: Session = Depends(get_db),
-    user: User = Depends(require_role(UserRole.ADMIN, UserRole.ANALYST)),
+    user: User = Depends(require_role(UserRole.MINISTRY)),
 ) -> EntityResolutionRunOut:
     report = run_entity_resolution(db)
     log_audit_event(db, user.id, "RUN_ENTITY_RESOLUTION", "EntityMatch", metadata={"matches": report.matches})
@@ -35,6 +35,7 @@ def list_entity_matches(
     limit: int = Query(default=50, le=500),
     offset: int = 0,
     db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
 ) -> list[EntityMatch]:
     query = db.query(EntityMatch)
     if verdict:

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { ApiError, createUser, listUsers, updateUser, type ManagedUser } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
-const ROLES = ["ADMIN", "OFFICER", "ANALYST", "VIEWER"];
+const ROLES = ["MP", "DISTRICT_AUTHORITY", "STATE_NODAL", "MINISTRY"];
 
 export default function UsersPage() {
   const { user, token } = useAuth();
@@ -16,8 +16,9 @@ export default function UsersPage() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("VIEWER");
-  const isAdmin = user?.role === "ADMIN";
+  const [role, setRole] = useState("MP");
+  const [scopeValue, setScopeValue] = useState("");
+  const isMinistry = user?.role === "MINISTRY";
 
   async function refresh() {
     if (!token) return;
@@ -42,11 +43,18 @@ export default function UsersPage() {
     e.preventDefault();
     if (!token) return;
     try {
-      await createUser(token, { email: email.trim(), full_name: fullName.trim(), password, role });
+      await createUser(token, {
+        email: email.trim(),
+        full_name: fullName.trim(),
+        password,
+        role,
+        scope_value: role === "MINISTRY" ? null : scopeValue.trim() || undefined,
+      });
       setEmail("");
       setFullName("");
       setPassword("");
-      setRole("VIEWER");
+      setRole("MP");
+      setScopeValue("");
       refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not create user.");
@@ -57,6 +65,16 @@ export default function UsersPage() {
     if (!token) return;
     try {
       await updateUser(token, id, { role: newRole });
+      refresh();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not update user.");
+    }
+  }
+
+  async function handleScopeChange(id: string, newScope: string) {
+    if (!token || !newScope.trim()) return;
+    try {
+      await updateUser(token, id, { scope_value: newScope.trim() });
       refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not update user.");
@@ -78,7 +96,8 @@ export default function UsersPage() {
       <div className="mx-auto max-w-[1400px]">
         <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">User Management</h1>
         <p className="mt-1 text-sm text-dashboard-muted">
-          Create accounts and manage role-based access (ADMIN / OFFICER / ANALYST / VIEWER). ADMIN only.
+          Create accounts and manage role-based, scoped access (MP / District Authority / State Nodal / Ministry).
+          Ministry only.
         </p>
 
         {!user && (
@@ -86,16 +105,16 @@ export default function UsersPage() {
             <Link href="/" className="font-semibold underline">
               Sign in
             </Link>{" "}
-            as an ADMIN to manage users.
+            as a Ministry official to manage users.
           </div>
         )}
-        {user && !isAdmin && (
+        {user && !isMinistry && (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            Your role ({user.role}) can&apos;t manage users — ADMIN only.
+            Your role ({user.role}) can&apos;t manage users — Ministry only.
           </div>
         )}
 
-        {isAdmin && (
+        {isMinistry && (
           <form onSubmit={handleCreate} className="mt-4 flex flex-wrap items-end gap-3 rounded-lg bg-white p-4 shadow-sm">
             <label className="text-xs font-semibold">
               Email
@@ -141,6 +160,18 @@ export default function UsersPage() {
                 ))}
               </select>
             </label>
+            {role !== "MINISTRY" && (
+              <label className="text-xs font-semibold">
+                Scope {role === "MP" ? "(constituency)" : role === "DISTRICT_AUTHORITY" ? "(district)" : "(state)"}
+                <input
+                  value={scopeValue}
+                  onChange={(e) => setScopeValue(e.target.value)}
+                  placeholder="Must match a Project's value exactly"
+                  className="mt-1 block w-56 rounded border border-dashboard-line px-2 py-1.5 text-sm"
+                  required
+                />
+              </label>
+            )}
             <button type="submit" className="rounded bg-dashboard-navy px-4 py-2 text-sm font-semibold text-white hover:bg-dashboard-deep">
               Create user
             </button>
@@ -159,6 +190,7 @@ export default function UsersPage() {
                   <th className="px-4 py-3">Name</th>
                   <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">Role</th>
+                  <th className="px-4 py-3">Scope</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Created</th>
                 </tr>
@@ -169,7 +201,7 @@ export default function UsersPage() {
                     <td className="px-4 py-3 font-semibold">{u.full_name}</td>
                     <td className="px-4 py-3 text-dashboard-muted">{u.email}</td>
                     <td className="px-4 py-3">
-                      {isAdmin ? (
+                      {isMinistry ? (
                         <select
                           value={u.role}
                           onChange={(e) => handleRoleChange(u.id, e.target.value)}
@@ -186,7 +218,20 @@ export default function UsersPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      {isAdmin ? (
+                      {u.role === "MINISTRY" ? (
+                        <span className="text-dashboard-muted">National</span>
+                      ) : isMinistry ? (
+                        <input
+                          defaultValue={u.scope_value ?? ""}
+                          onBlur={(e) => e.target.value !== (u.scope_value ?? "") && handleScopeChange(u.id, e.target.value)}
+                          className="w-32 rounded border border-dashboard-line px-2 py-1 text-[11px]"
+                        />
+                      ) : (
+                        <span>{u.scope_value ?? "—"}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {isMinistry ? (
                         <button
                           onClick={() => handleToggleActive(u)}
                           disabled={u.id === user?.id}

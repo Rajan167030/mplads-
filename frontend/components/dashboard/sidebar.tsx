@@ -13,6 +13,7 @@ import {
   FolderKanban,
   LayoutDashboard,
   MapPinned,
+  MessageSquareWarning,
   Network,
   PanelLeftClose,
   RefreshCcw,
@@ -23,6 +24,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { useAuth } from "@/lib/auth-context";
 import { useMobileNav } from "@/lib/mobile-nav-context";
 
 const navigation = [
@@ -35,15 +37,18 @@ const navigation = [
   { label: "Contractor Intelligence", icon: Network, href: "/dashboard/contractors" },
   { label: "Pattern Intelligence", icon: Activity, href: "/dashboard/patterns" },
   { label: "Investigations", icon: BriefcaseBusiness, href: "/dashboard/investigations" },
+  { label: "Citizen Complaints", icon: MessageSquareWarning, href: "/dashboard/complaints" },
   { label: "AI Assistant", icon: Bot, href: "/dashboard/assistant" },
   { label: "Data Quality", icon: ClipboardCheck, href: "/dashboard/data-quality" },
   { label: "Reports", icon: FileBarChart, href: "/dashboard/reports" },
-  { label: "Users", icon: Users, href: "/dashboard/users" },
+  { label: "Users", icon: Users, href: "/dashboard/users", ministryOnly: true },
 ];
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   const { open, close } = useMobileNav();
+  const { user } = useAuth();
+  const visibleNavigation = navigation.filter((item) => !item.ministryOnly || user?.role === "MINISTRY");
 
   return (
     <>
@@ -85,7 +90,7 @@ export function DashboardSidebar() {
             </div>
           </div>
           <nav className="max-h-[calc(100vh-12rem)] space-y-1 overflow-y-auto px-3" aria-label="Dashboard navigation">
-            {navigation.map(({ label, icon: Icon, href }) => {
+            {visibleNavigation.map(({ label, icon: Icon, href }) => {
               const isActive = href === "/dashboard" ? pathname === href : pathname.startsWith(href);
               return (
                 <Link

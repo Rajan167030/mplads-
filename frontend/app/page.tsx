@@ -30,7 +30,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-console-bg text-console-ink">
+    <div className="flex min-h-screen flex-col bg-dashboard-surface text-dashboard-ink">
       <SiteHeader />
       <main className="flex flex-1 flex-col lg:min-h-[calc(100vh-110px)] lg:flex-row">
         <HeroPanel stats={stats} initialSignals={initialSignals} />

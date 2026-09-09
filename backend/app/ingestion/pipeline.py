@@ -28,7 +28,15 @@ from app.ingestion.schema import (
 from app.ingestion.validators import has_valid_location, validate_project
 from app.models.agency import Agency
 from app.models.contractor import Contractor
-from app.models.enums import EvidenceType, MilestoneStatus, PaymentStatus, PaymentType, ProjectStatus, ProjectType
+from app.models.enums import (
+    DataSource,
+    EvidenceType,
+    MilestoneStatus,
+    PaymentStatus,
+    PaymentType,
+    ProjectStatus,
+    ProjectType,
+)
 from app.models.evidence import Evidence
 from app.models.ingestion_report import IngestionReport
 from app.models.inspection import Inspection
@@ -101,7 +109,11 @@ def ingest_agencies(db: Session, csv_path: Path) -> dict[str, Agency]:
 
 
 def ingest_projects(
-    db: Session, csv_path: Path, contractor_cache: dict[str, Contractor], agency_cache: dict[str, Agency]
+    db: Session,
+    csv_path: Path,
+    contractor_cache: dict[str, Contractor],
+    agency_cache: dict[str, Agency],
+    data_source: DataSource = DataSource.SYNTHETIC,
 ) -> tuple[dict[str, uuid.UUID], dict]:
     df = map_columns(_read_csv(csv_path), PROJECT_COLUMNS, required=REQUIRED_PROJECT_FIELDS)
 
@@ -120,6 +132,7 @@ def ingest_projects(
             "state": normalize_text(raw.get("state")),
             "district": normalize_text(raw.get("district")),
             "constituency": normalize_text(raw.get("constituency")),
+            "mp_name": normalize_text(raw.get("mp_name")),
             "latitude": parse_float(raw.get("latitude")),
             "longitude": parse_float(raw.get("longitude")),
             "sanctioned_amount": parse_float(raw.get("sanctioned_amount")),
@@ -176,6 +189,8 @@ def ingest_projects(
             state=normalized["state"],
             district=normalized["district"],
             constituency=normalized["constituency"],
+            mp_name=normalized["mp_name"],
+            data_source=data_source,
             latitude=normalized["latitude"],
             longitude=normalized["longitude"],
             geom=geom_wkt,

@@ -15,14 +15,14 @@ router = APIRouter(prefix="/users", tags=["users"])
 def _out(user: User) -> UserOut:
     return UserOut(
         id=user.id, email=user.email, full_name=user.full_name,
-        role=user.role.value, is_active=user.is_active, created_at=user.created_at,
+        role=user.role.value, scope_value=user.scope_value, is_active=user.is_active, created_at=user.created_at,
     )
 
 
 @router.get("", response_model=list[UserOut])
 def list_users(
     db: Session = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN)),
+    _: User = Depends(require_role(UserRole.MINISTRY)),
 ) -> list[UserOut]:
     return [_out(u) for u in db.query(User).order_by(User.created_at.desc()).all()]
 
@@ -31,18 +31,20 @@ def list_users(
 def create_user(
     payload: UserCreate,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_role(UserRole.ADMIN)),
+    admin: User = Depends(require_role(UserRole.MINISTRY)),
 ) -> UserOut:
     if payload.role.upper() not in UserRole.__members__:
         raise HTTPException(status_code=422, detail=f"Invalid role: {payload.role!r}")
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=409, detail="A user with this email already exists")
 
+    role = UserRole[payload.role.upper()]
     user = User(
         email=payload.email,
         full_name=payload.full_name,
         hashed_password=hash_password(payload.password),
-        role=UserRole[payload.role.upper()],
+        role=role,
+        scope_value=payload.scope_value if role != UserRole.MINISTRY else None,
     )
     db.add(user)
     db.commit()
@@ -57,7 +59,7 @@ def update_user(
     user_id: str,
     payload: UserUpdate,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_role(UserRole.ADMIN)),
+    admin: User = Depends(require_role(UserRole.MINISTRY)),
 ) -> UserOut:
     user = db.get(User, user_id)
     if not user:
@@ -67,6 +69,10 @@ def update_user(
         if payload.role.upper() not in UserRole.__members__:
             raise HTTPException(status_code=422, detail=f"Invalid role: {payload.role!r}")
         user.role = UserRole[payload.role.upper()]
+        if user.role == UserRole.MINISTRY:
+            user.scope_value = None
+    if payload.scope_value is not None:
+        user.scope_value = payload.scope_value
     if payload.is_active is not None:
         if user.id == admin.id and not payload.is_active:
             raise HTTPException(status_code=400, detail="You can't deactivate your own account")

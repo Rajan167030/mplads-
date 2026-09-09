@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import {
   ApiError,
   createInvestigation,
+  escalateInvestigation,
   listInvestigations,
   updateInvestigation,
   type Investigation,
@@ -18,6 +19,10 @@ const STATUS_STYLES: Record<string, string> = {
   RESOLVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
 };
 
+const MANAGER_ROLES = ["DISTRICT_AUTHORITY", "STATE_NODAL", "MINISTRY"];
+const ESCALATOR_ROLES = ["DISTRICT_AUTHORITY", "STATE_NODAL"];
+const NEXT_LEVEL: Record<string, string> = { DISTRICT: "STATE", STATE: "MINISTRY" };
+
 export default function InvestigationsPage() {
   const { user, token } = useAuth();
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
@@ -27,12 +32,18 @@ export default function InvestigationsPage() {
   const [projectId, setProjectId] = useState("");
   const [priority, setPriority] = useState("HIGH");
   const [notes, setNotes] = useState("");
-  const canManage = user?.role === "ADMIN" || user?.role === "OFFICER";
+  const canManage = !!user && MANAGER_ROLES.includes(user.role);
+  // A District Authority can only act while a case sits at DISTRICT, State Nodal only at STATE — same
+  // rule the backend enforces (app/api/investigations.py) — Ministry can act on any case, any level.
+  const canActOn = (inv: Investigation) =>
+    !!user && (user.role === "MINISTRY" || (user.role === "DISTRICT_AUTHORITY" && inv.current_level === "DISTRICT") || (user.role === "STATE_NODAL" && inv.current_level === "STATE"));
+  const canEscalate = (inv: Investigation) =>
+    !!user && ESCALATOR_ROLES.includes(user.role) && canActOn(inv) && inv.current_level !== "MINISTRY";
 
   async function refresh() {
     setLoading(true);
     try {
-      const data = await listInvestigations(statusFilter ? { status: statusFilter } : {});
+      const data = await listInvestigations(statusFilter ? { status: statusFilter } : {}, token ?? undefined);
       setInvestigations(data);
       setError(null);
     } catch (err) {
@@ -48,11 +59,12 @@ export default function InvestigationsPage() {
     // the fetch) is why this doesn't fit the "effect only synchronizes" shape
     // the newer lint rule expects. Genuine fetch-on-mount-and-on-filter-change,
     // not a smell. Deliberately excluding `refresh` from deps: it's redefined
-    // every render and only ever needs re-running when the filter changes.
+    // every render and only ever needs re-running when the filter or the
+    // signed-in user (whose token scopes the results) changes.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
+  }, [statusFilter, token]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -77,13 +89,24 @@ export default function InvestigationsPage() {
     }
   }
 
+  async function handleEscalate(id: string) {
+    if (!token) return;
+    try {
+      await escalateInvestigation(token, id);
+      refresh();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not escalate investigation.");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-dashboard-surface px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1400px]">
         <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Investigations</h1>
         <p className="mt-1 text-sm text-dashboard-muted">
-          Human-in-the-loop review of flagged projects. Creating and updating investigations requires signing in as
-          ADMIN or OFFICER — {canManage ? "you're signed in with access." : "sign in to manage them."}
+          Human-in-the-loop review of flagged projects. Verifying or escalating a case requires signing in as a
+          District Authority, State Nodal, or Ministry official —{" "}
+          {canManage ? "you're signed in with access." : "sign in to manage them."}
         </p>
 
         {!user && (
@@ -91,7 +114,8 @@ export default function InvestigationsPage() {
             <Link href="/" className="font-semibold underline">
               Sign in
             </Link>{" "}
-            as an OFFICER or ADMIN to create or update investigations. You can still browse existing ones below.
+            as a District Authority, State Nodal, or Ministry official to create, verify, or escalate investigations.
+            You can still browse the ones in your jurisdiction below.
           </div>
         )}
 
@@ -153,13 +177,14 @@ export default function InvestigationsPage() {
 
         {investigations.length > 0 && (
           <div className="mt-5 overflow-x-auto rounded-lg bg-white shadow-sm">
-            <table className="w-full min-w-[800px] text-sm">
+            <table className="w-full min-w-[900px] text-sm">
               <thead>
                 <tr className="border-b border-dashboard-line text-left text-[10px] font-bold uppercase tracking-wider text-dashboard-muted">
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Priority</th>
                   <th className="px-4 py-3">Notes</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Level</th>
                   <th className="px-4 py-3">Updated</th>
                 </tr>
               </thead>
@@ -175,7 +200,7 @@ export default function InvestigationsPage() {
                     <td className="px-4 py-3">{inv.priority}</td>
                     <td className="px-4 py-3 max-w-xs truncate text-dashboard-muted">{inv.notes ?? "—"}</td>
                     <td className="px-4 py-3">
-                      {canManage ? (
+                      {canActOn(inv) ? (
                         <select
                           value={inv.status}
                           onChange={(e) => handleStatusChange(inv.id, e.target.value)}
@@ -189,6 +214,26 @@ export default function InvestigationsPage() {
                         <span className={`rounded border px-2 py-0.5 text-[10px] font-bold ${STATUS_STYLES[inv.status] ?? ""}`}>
                           {inv.status}
                         </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="rounded bg-dashboard-surface px-2 py-0.5 text-[10px] font-bold text-dashboard-muted">
+                          {inv.current_level}
+                        </span>
+                        {inv.overdue_for_escalation && (
+                          <span className="rounded border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                            Overdue
+                          </span>
+                        )}
+                      </div>
+                      {canEscalate(inv) && (
+                        <button
+                          onClick={() => handleEscalate(inv.id)}
+                          className="mt-1.5 rounded border border-dashboard-navy px-2 py-1 text-[10px] font-bold text-dashboard-navy hover:bg-dashboard-navy hover:text-white"
+                        >
+                          Escalate to {NEXT_LEVEL[inv.current_level]}
+                        </button>
                       )}
                     </td>
                     <td className="px-4 py-3 text-dashboard-muted">{new Date(inv.updated_at).toLocaleDateString()}</td>

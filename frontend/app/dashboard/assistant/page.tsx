@@ -1,5 +1,6 @@
 "use client";
 
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -31,6 +32,7 @@ export default function AssistantPage() {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -190,22 +192,34 @@ export default function AssistantPage() {
       <ConversationSidebar
         conversations={conversations}
         activeId={active?.id ?? null}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
         onSelect={handleSelect}
         onNew={handleNew}
         onDelete={handleDelete}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="border-b border-dashboard-line bg-white px-5 py-3">
-          <h1 className="font-display text-lg font-bold">AI Assistant</h1>
-          <p className="text-xs text-dashboard-muted">
-            Grounded in real data — never answers from outside knowledge about a specific project.
-            {active?.document_filename && (
-              <span className="ml-2 rounded bg-dashboard-blue-soft px-1.5 py-0.5 font-semibold text-dashboard-navy">
-                📎 {active.document_filename}
-              </span>
-            )}
-          </p>
+        <div className="flex items-center gap-2 border-b border-dashboard-line bg-white px-3 py-3 sm:px-5">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open conversation list"
+            className="grid size-9 shrink-0 place-items-center rounded-lg border border-dashboard-line text-dashboard-ink lg:hidden"
+          >
+            <Menu size={18} />
+          </button>
+          <div className="min-w-0">
+            <h1 className="font-display text-lg font-bold">AI Assistant</h1>
+            <p className="truncate text-xs text-dashboard-muted">
+              Grounded in real data — never answers from outside knowledge about a specific project.
+              {active?.document_filename && (
+                <span className="ml-2 rounded bg-dashboard-blue-soft px-1.5 py-0.5 font-semibold text-dashboard-navy">
+                  📎 {active.document_filename}
+                </span>
+              )}
+            </p>
+          </div>
         </div>
 
         {status && !status.configured && (

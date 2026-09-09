@@ -23,4 +23,4 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
 
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)) -> UserOut:
-    return UserOut(id=user.id, email=user.email, full_name=user.full_name, role=user.role.value)
+    return UserOut(id=user.id, email=user.email, full_name=user.full_name, role=user.role.value, scope_value=user.scope_value)

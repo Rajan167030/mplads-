@@ -25,6 +25,13 @@ const SECTOR_LABELS: Record<string, string> = {
 
 const MAP_LIMIT = 5000;
 
+// Keep the camera locked to India's extent so the heatmap never drifts out
+// to show unrelated neighbouring countries when panned or zoomed out.
+const INDIA_BOUNDS: [[number, number], [number, number]] = [
+  [66.5, 5.5],
+  [99.5, 36.5],
+];
+
 export function PublicHeatmap({
   initialData,
   states,
@@ -53,12 +60,14 @@ export function PublicHeatmap({
 
     const map = new MapLibreMap({
       container: containerRef.current,
-      style: "https://demotiles.maplibre.org/style.json",
-      center: [78.9, 22.6],
-      zoom: 3.6,
+      style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+      center: [82.8, 22.6],
+      zoom: 4,
+      minZoom: 3.8,
+      maxBounds: INDIA_BOUNDS,
     });
     mapRef.current = map;
-    map.addControl(new NavigationControl(), "top-right");
+    map.addControl(new NavigationControl(), "bottom-right");
 
     map.on("load", () => {
       map.addSource("projects", { type: "geojson", data: data as unknown as GeoJSON.FeatureCollection });
@@ -102,10 +111,10 @@ export function PublicHeatmap({
         minzoom: 7,
         paint: {
           "circle-radius": 4,
-          "circle-color": "#092541",
+          "circle-color": "#8dfc75",
           "circle-stroke-width": 1,
-          "circle-stroke-color": "#ffffff",
-          "circle-opacity": 0.8,
+          "circle-stroke-color": "#092541",
+          "circle-opacity": 0.9,
         },
       });
 
@@ -151,6 +160,8 @@ export function PublicHeatmap({
 
   return (
     <div>
+      {error && <p className="mb-2 text-xs font-medium text-red-600">{error}</p>}
+
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
           <Layers size={13} /> Filter map
@@ -198,13 +209,27 @@ export function PublicHeatmap({
         </span>
       </div>
 
-      {error && <p className="mb-2 text-xs font-medium text-red-600">{error}</p>}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 shadow-lg shadow-slate-900/10">
+        <div ref={containerRef} className="h-[460px] w-full sm:h-[500px]" />
 
-      <div className="relative">
-        <div ref={containerRef} className="h-[420px] w-full rounded-xl" />
         {loading && (
-          <div className="pointer-events-none absolute inset-0 rounded-xl bg-white/30 backdrop-blur-[1px]" />
+          <div className="pointer-events-none absolute inset-0 z-20 bg-dashboard-deep/20 backdrop-blur-[1px]" />
         )}
+
+        <div className="pointer-events-none absolute inset-0 z-10 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]" />
+
+        <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2 rounded-full border border-white/10 bg-dashboard-deep/80 px-3 py-1.5 shadow-lg backdrop-blur-md">
+          <span className="text-[10px] font-medium text-slate-300">Fewer</span>
+          <span
+            className="h-2 w-24 rounded-full"
+            style={{
+              background:
+                "linear-gradient(to right, rgba(79,142,247,0.45), #4f8ef7, #1c4f8f, #092541, #8dfc75)",
+            }}
+            aria-hidden="true"
+          />
+          <span className="text-[10px] font-medium text-slate-300">More projects</span>
+        </div>
       </div>
     </div>
   );

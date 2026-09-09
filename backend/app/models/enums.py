@@ -96,10 +96,21 @@ class InvestigationResolution(str, enum.Enum):
 
 
 class UserRole(str, enum.Enum):
-    ADMIN = "ADMIN"
-    OFFICER = "OFFICER"
-    ANALYST = "ANALYST"
-    VIEWER = "VIEWER"
+    MP = "MP"
+    DISTRICT_AUTHORITY = "DISTRICT_AUTHORITY"
+    STATE_NODAL = "STATE_NODAL"
+    MINISTRY = "MINISTRY"
+
+
+class EscalationLevel(str, enum.Enum):
+    DISTRICT = "DISTRICT"
+    STATE = "STATE"
+    MINISTRY = "MINISTRY"
+
+
+class DataSource(str, enum.Enum):
+    SYNTHETIC = "SYNTHETIC"
+    REAL_MPLADS = "REAL_MPLADS"
 
 
 class MatchVerdict(str, enum.Enum):
@@ -111,3 +122,10 @@ class MatchVerdict(str, enum.Enum):
 class MessageRole(str, enum.Enum):
     USER = "USER"
     ASSISTANT = "ASSISTANT"
+
+
+class ComplaintStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    UNDER_REVIEW = "UNDER_REVIEW"
+    RESOLVED = "RESOLVED"
+    DISMISSED = "DISMISSED"

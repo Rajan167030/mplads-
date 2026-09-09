@@ -1,6 +1,7 @@
 "use client";
 
 import { MapPin, Search } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { listProjects, type ProjectListItem } from "@/lib/api";
@@ -96,6 +97,9 @@ export function AreaSearch({ states }: { states: string[] }) {
                     <div className="mt-0.5 text-[11px] text-slate-500">
                       {p.district}, {p.state} · {crore(p.sanctioned_amount)}
                     </div>
+                    <Link href={`/complaint/${p.id}`} className="mt-1 inline-block text-[10px] font-bold text-red-600 hover:underline">
+                      Report an issue
+                    </Link>
                   </div>
                   <span className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold ${STATUS_STYLES[p.status] ?? "bg-slate-100"}`}>
                     {p.status}

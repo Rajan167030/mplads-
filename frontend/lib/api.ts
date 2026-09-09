@@ -29,6 +29,14 @@ function authRequest<T>(path: string, token: string, init?: RequestInit): Promis
   return request<T>(path, { ...init, headers: { Authorization: `Bearer ${token}`, ...init?.headers } });
 }
 
+// For endpoints that scope themselves to the caller's role when a token is
+// present, but otherwise stay reachable (the public portal, the pre-login
+// landing page) or are only ever called from an authenticated dashboard page
+// — either way, omitting the token just means "no Authorization header."
+function maybeAuthRequest<T>(path: string, token?: string, init?: RequestInit): Promise<T> {
+  return request<T>(path, token ? { ...init, headers: { Authorization: `Bearer ${token}`, ...init?.headers } } : init);
+}
+
 // File uploads need multipart/form-data with a browser-generated boundary —
 // request()'s hardcoded "Content-Type: application/json" would break that,
 // so this bypasses it with its own fetch call instead of reusing request().
@@ -38,6 +46,23 @@ async function uploadRequest<T>(path: string, token: string, formData: FormData)
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
+  if (!res.ok) {
+    let detail = "";
+    try {
+      detail = (await res.json())?.detail ?? "";
+    } catch {
+      // ignore
+    }
+    throw new ApiError(res.status, detail || `Upload to ${path} failed with ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+// Same as uploadRequest but with no Authorization header at all — for the
+// one genuinely public, unauthenticated multipart endpoint (anonymous
+// complaint submission), which has no token to attach in the first place.
+async function publicUploadRequest<T>(path: string, formData: FormData): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, { method: "POST", body: formData });
   if (!res.ok) {
     let detail = "";
     try {
@@ -64,6 +89,7 @@ export interface CurrentUser {
   email: string;
   full_name: string;
   role: string;
+  scope_value: string | null;
 }
 
 export function login(email: string, password: string) {
@@ -107,8 +133,8 @@ export interface RiskSummary {
   open_investigations: number;
 }
 
-export function getRiskSummary() {
-  return request<RiskSummary>("/risk-scores/summary");
+export function getRiskSummary(token?: string) {
+  return maybeAuthRequest<RiskSummary>("/risk-scores/summary", token);
 }
 
 export interface ProjectRiskSummary {
@@ -123,11 +149,11 @@ export interface ProjectRiskSummary {
   risk_band: string | null;
 }
 
-export function getTopRiskProjects(params: { band?: string; limit?: number } = {}) {
+export function getTopRiskProjects(params: { band?: string; limit?: number } = {}, token?: string) {
   const qs = new URLSearchParams();
   if (params.band) qs.set("band", params.band);
   qs.set("limit", String(params.limit ?? 50));
-  return request<ProjectRiskSummary[]>(`/risk-scores/top?${qs}`);
+  return maybeAuthRequest<ProjectRiskSummary[]>(`/risk-scores/top?${qs}`, token);
 }
 
 export interface ContributingSignal {
@@ -148,8 +174,8 @@ export interface RiskExplanation {
   overall_confidence: number;
 }
 
-export function explainRisk(projectId: string) {
-  return request<RiskExplanation>(`/risk-scores/${projectId}/explain`);
+export function explainRisk(projectId: string, token?: string) {
+  return maybeAuthRequest<RiskExplanation>(`/risk-scores/${projectId}/explain`, token);
 }
 
 // ---------------------------------------------------------------------------
@@ -191,12 +217,38 @@ export interface ProjectFilters {
   offset?: number;
 }
 
-export function listProjects(filters: ProjectFilters = {}) {
+export function listProjects(filters: ProjectFilters = {}, token?: string) {
   const qs = new URLSearchParams();
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== "") qs.set(key, String(value));
   });
-  return request<ProjectListResult>(`/projects?${qs}`);
+  return maybeAuthRequest<ProjectListResult>(`/projects?${qs}`, token);
+}
+
+export interface NearbyProjectItem {
+  id: string;
+  external_project_id: string;
+  project_name: string;
+  project_type: string;
+  state: string;
+  district: string;
+  constituency: string | null;
+  status: string;
+  sanctioned_amount: number;
+  physical_progress: number;
+  distance_km: number;
+}
+
+export interface NearbyProjectsResult {
+  recommended_state: string | null;
+  recommended_district: string | null;
+  nearest_distance_km: number | null;
+  projects: NearbyProjectItem[];
+}
+
+export function getNearbyProjects(lat: number, lng: number, limit = 10, token?: string) {
+  const qs = new URLSearchParams({ lat: String(lat), lng: String(lng), limit: String(limit) });
+  return maybeAuthRequest<NearbyProjectsResult>(`/projects/nearby?${qs}`, token);
 }
 
 export interface ProjectDetail {
@@ -209,6 +261,8 @@ export interface ProjectDetail {
   state: string;
   district: string;
   constituency: string | null;
+  mp_name: string | null;
+  data_source: string;
   latitude: number | null;
   longitude: number | null;
   sanctioned_amount: number;
@@ -230,8 +284,8 @@ export interface ProjectDetail {
   signal_count: number;
 }
 
-export function getProject(id: string) {
-  return request<ProjectDetail>(`/projects/${id}`);
+export function getProject(id: string, token?: string) {
+  return maybeAuthRequest<ProjectDetail>(`/projects/${id}`, token);
 }
 
 export interface ProjectTimeline {
@@ -241,8 +295,8 @@ export interface ProjectTimeline {
   evidence: { id: string; type: string; file_reference: string | null; description: string | null; captured_at: string | null; source: string | null }[];
 }
 
-export function getProjectTimeline(id: string) {
-  return request<ProjectTimeline>(`/projects/${id}/timeline`);
+export function getProjectTimeline(id: string, token?: string) {
+  return maybeAuthRequest<ProjectTimeline>(`/projects/${id}/timeline`, token);
 }
 
 // ---------------------------------------------------------------------------
@@ -267,8 +321,8 @@ export interface RelatedProject {
   distance_km: number | null;
 }
 
-export function getRelatedProjects(id: string, limit = 10) {
-  return request<RelatedProject[]>(`/graph/projects/${id}/related?limit=${limit}`);
+export function getRelatedProjects(id: string, limit = 10, token?: string) {
+  return maybeAuthRequest<RelatedProject[]>(`/graph/projects/${id}/related?limit=${limit}`, token);
 }
 
 // ---------------------------------------------------------------------------
@@ -296,12 +350,15 @@ export interface ContractorListResult {
   items: ContractorListItem[];
 }
 
-export function listContractors(params: { min_total_projects?: number; sort_by?: string; limit?: number; offset?: number } = {}) {
+export function listContractors(
+  params: { min_total_projects?: number; sort_by?: string; limit?: number; offset?: number } = {},
+  token?: string
+) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined) qs.set(key, String(value));
   });
-  return request<ContractorListResult>(`/contractors?${qs}`);
+  return maybeAuthRequest<ContractorListResult>(`/contractors?${qs}`, token);
 }
 
 export interface ContractorDetail {
@@ -319,8 +376,8 @@ export interface ContractorDetail {
   }[];
 }
 
-export function getContractor(id: string) {
-  return request<ContractorDetail>(`/contractors/${id}`);
+export function getContractor(id: string, token?: string) {
+  return maybeAuthRequest<ContractorDetail>(`/contractors/${id}`, token);
 }
 
 // ---------------------------------------------------------------------------
@@ -340,8 +397,8 @@ export interface PatternSummaryResult {
   patterns: PatternSummary[];
 }
 
-export function getPatternSummary() {
-  return request<PatternSummaryResult>("/patterns/summary");
+export function getPatternSummary(token?: string) {
+  return maybeAuthRequest<PatternSummaryResult>("/patterns/summary", token);
 }
 
 export interface RiskSignalListItem {
@@ -358,12 +415,15 @@ export interface RiskSignalListItem {
   project: ProjectRef;
 }
 
-export function getRiskSignals(params: { signal_type?: string; source?: string; severity?: string; limit?: number } = {}) {
+export function getRiskSignals(
+  params: { signal_type?: string; source?: string; severity?: string; limit?: number } = {},
+  token?: string
+) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== "") qs.set(key, String(value));
   });
-  return request<RiskSignalListItem[]>(`/risk-signals?${qs}`);
+  return maybeAuthRequest<RiskSignalListItem[]>(`/risk-signals?${qs}`, token);
 }
 
 // ---------------------------------------------------------------------------
@@ -391,12 +451,15 @@ export interface RiskMapResult {
   features: RiskMapFeature[];
 }
 
-export function getRiskMap(params: { risk_band?: string; state?: string; project_type?: string; limit?: number } = {}) {
+export function getRiskMap(
+  params: { risk_band?: string; state?: string; project_type?: string; limit?: number } = {},
+  token?: string
+) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== "") qs.set(key, String(value));
   });
-  return request<RiskMapResult>(`/map/risk?${qs}`);
+  return maybeAuthRequest<RiskMapResult>(`/map/risk?${qs}`, token);
 }
 
 export interface MapFilterOptions {
@@ -404,8 +467,8 @@ export interface MapFilterOptions {
   project_types: string[];
 }
 
-export function getMapFilterOptions() {
-  return request<MapFilterOptions>("/map/filters");
+export function getMapFilterOptions(token?: string) {
+  return maybeAuthRequest<MapFilterOptions>("/map/filters", token);
 }
 
 // ---------------------------------------------------------------------------
@@ -459,8 +522,30 @@ export interface FinancialsSummary {
   by_state: FinancialsByState[];
 }
 
-export function getFinancialsSummary() {
-  return request<FinancialsSummary>("/financials/summary");
+export function getFinancialsSummary(token?: string) {
+  return maybeAuthRequest<FinancialsSummary>("/financials/summary", token);
+}
+
+export interface FinancialsByMp {
+  state: string;
+  constituency: string | null;
+  mp_name: string;
+  project_count: number;
+  sanctioned_amount: number;
+  released_amount: number;
+  expenditure_amount: number;
+}
+
+export interface FinancialsByMpResult {
+  total_projects: number;
+  attributed_projects: number;
+  attribution_coverage_pct: number;
+  by_mp: FinancialsByMp[];
+}
+
+export function getFinancialsByMp(state?: string, token?: string) {
+  const query = state ? `?state=${encodeURIComponent(state)}` : "";
+  return maybeAuthRequest<FinancialsByMpResult>(`/financials/by-mp${query}`, token);
 }
 
 // ---------------------------------------------------------------------------
@@ -478,16 +563,18 @@ export interface Investigation {
   assigned_to_name: string | null;
   notes: string | null;
   resolution: string | null;
+  current_level: string;
+  overdue_for_escalation: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export function listInvestigations(params: { status?: string; project_id?: string } = {}) {
+export function listInvestigations(params: { status?: string; project_id?: string } = {}, token?: string) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value) qs.set(key, value);
   });
-  return request<Investigation[]>(`/investigations?${qs}`);
+  return maybeAuthRequest<Investigation[]>(`/investigations?${qs}`, token);
 }
 
 export function createInvestigation(
@@ -503,6 +590,10 @@ export function updateInvestigation(
   payload: { status?: string; resolution?: string; notes?: string }
 ) {
   return authRequest<Investigation>(`/investigations/${id}`, token, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+export function escalateInvestigation(token: string, id: string) {
+  return authRequest<Investigation>(`/investigations/${id}/escalate`, token, { method: "POST" });
 }
 
 // ---------------------------------------------------------------------------
@@ -638,6 +729,7 @@ export interface ManagedUser {
   email: string;
   full_name: string;
   role: string;
+  scope_value: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -648,12 +740,16 @@ export function listUsers(token: string) {
 
 export function createUser(
   token: string,
-  payload: { email: string; full_name: string; password: string; role: string }
+  payload: { email: string; full_name: string; password: string; role: string; scope_value?: string | null }
 ) {
   return authRequest<ManagedUser>("/users", token, { method: "POST", body: JSON.stringify(payload) });
 }
 
-export function updateUser(token: string, id: string, payload: { role?: string; is_active?: boolean }) {
+export function updateUser(
+  token: string,
+  id: string,
+  payload: { role?: string; scope_value?: string; is_active?: boolean }
+) {
   return authRequest<ManagedUser>(`/users/${id}`, token, { method: "PATCH", body: JSON.stringify(payload) });
 }
 
@@ -661,8 +757,21 @@ export function updateUser(token: string, id: string, payload: { role?: string; 
 // Reports / CSV export
 // ---------------------------------------------------------------------------
 
-export function reportDownloadUrl(report: "projects" | "risk-signals" | "investigations") {
-  return `${API_URL}/reports/${report}.csv`;
+// Report exports now require auth (scoped to the caller's jurisdiction), so a
+// plain <a href> can't carry the Bearer token — fetch as a blob and trigger
+// the save client-side instead.
+export async function downloadReportCsv(token: string, report: "projects" | "risk-signals" | "investigations") {
+  const res = await fetch(`${API_URL}/reports/${report}.csv`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new ApiError(res.status, `Download of ${report}.csv failed with ${res.status}`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${report}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 // ---------------------------------------------------------------------------
@@ -689,6 +798,96 @@ export interface OverviewGraph {
   edges: GraphEdge[];
 }
 
-export function getOverviewGraph(limit = 15) {
-  return request<OverviewGraph>(`/graph/overview?limit=${limit}`);
+export function getOverviewGraph(limit = 15, token?: string) {
+  return maybeAuthRequest<OverviewGraph>(`/graph/overview?limit=${limit}`, token);
+}
+
+// ---------------------------------------------------------------------------
+// Citizen complaints — anonymous submission, geo-verified against the
+// project's own location; no login required to submit or check status.
+// ---------------------------------------------------------------------------
+
+export interface ComplaintSubmitResult {
+  token: string;
+  status: string;
+  is_location_verified: boolean;
+  distance_to_project_m: number | null;
+  message: string;
+}
+
+export function submitComplaint(payload: {
+  project_id: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  photo: File;
+}) {
+  const formData = new FormData();
+  formData.append("project_id", payload.project_id);
+  formData.append("description", payload.description);
+  formData.append("latitude", String(payload.latitude));
+  formData.append("longitude", String(payload.longitude));
+  formData.append("photo", payload.photo);
+  return publicUploadRequest<ComplaintSubmitResult>("/complaints", formData);
+}
+
+export interface ComplaintStatusResult {
+  token: string;
+  status: string;
+  is_location_verified: boolean;
+  distance_to_project_m: number | null;
+  project_name: string;
+  created_at: string;
+}
+
+export function getComplaintStatus(token: string) {
+  return request<ComplaintStatusResult>(`/complaints/status/${encodeURIComponent(token)}`);
+}
+
+export interface ComplaintListItem {
+  id: string;
+  project_id: string;
+  project_name: string;
+  project_external_id: string;
+  description: string;
+  is_location_verified: boolean;
+  distance_to_project_m: number | null;
+  status: string;
+  created_at: string;
+}
+
+export interface ComplaintDetail extends ComplaintListItem {
+  submitted_latitude: number;
+  submitted_longitude: number;
+  resolution_notes: string | null;
+  updated_at: string;
+}
+
+export function listComplaints(
+  params: { project_id?: string; status?: string; verified_only?: boolean } = {},
+  token: string
+) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") qs.set(key, String(value));
+  });
+  return authRequest<ComplaintListItem[]>(`/complaints?${qs}`, token);
+}
+
+export function getComplaint(token: string, id: string) {
+  return authRequest<ComplaintDetail>(`/complaints/${id}`, token);
+}
+
+export function updateComplaint(token: string, id: string, payload: { status?: string; resolution_notes?: string }) {
+  return authRequest<ComplaintDetail>(`/complaints/${id}`, token, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+// Photo bytes aren't JSON, so this bypasses request() and hands back an
+// object URL the caller can drop into an <img src> or window.open — and
+// must revoke (URL.revokeObjectURL) once it's no longer displayed.
+export async function getComplaintPhotoUrl(token: string, id: string): Promise<string> {
+  const res = await fetch(`${API_URL}/complaints/${id}/photo`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new ApiError(res.status, `Fetching photo for complaint ${id} failed with ${res.status}`);
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
 }

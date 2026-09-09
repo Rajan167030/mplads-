@@ -1,30 +1,31 @@
 import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 
 export function SiteHeader() {
   return (
-    <header className="flex items-center justify-between border-b border-console-border-soft px-5 py-4 sm:px-8 lg:px-12">
+    <header className="flex items-center justify-between border-b border-dashboard-line bg-white/95 px-5 py-4 shadow-sm backdrop-blur sm:px-8 lg:px-12">
       <div className="flex items-center gap-2.5">
         <span
-          className="grid size-7 place-items-center rounded-full border border-console-border bg-console-surface"
+          className="grid size-9 place-items-center rounded-xl border border-dashboard-lime/30 bg-dashboard-navy text-dashboard-lime"
           aria-hidden="true"
         >
-          <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="6" stroke="#7C6FEE" strokeWidth="1.1" />
-            <circle cx="7" cy="7" r="1.6" fill="#7C6FEE" />
-          </svg>
+          <ShieldCheck size={18} strokeWidth={2.2} />
         </span>
-        <span className="font-display text-sm font-semibold text-console-ink">MPLADS Intelligence</span>
+        <div>
+          <div className="font-display text-sm font-semibold text-dashboard-ink">MPLADS Intelligence</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">Intelligence Core</div>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
         <Link
           href="/public"
-          className="text-xs font-medium text-console-ink-muted underline-offset-4 hover:text-console-ink hover:underline"
+          className="text-xs font-medium text-dashboard-muted underline-offset-4 hover:text-dashboard-ink hover:underline"
         >
           Public transparency portal
         </Link>
-        <div className="hidden items-center gap-2 rounded-full border border-console-border bg-console-surface px-3 py-1.5 text-xs text-console-ink-muted sm:flex">
-          <span className="size-1.5 rounded-full bg-console-green shadow-[0_0_0_3px_rgba(62,213,152,0.18)]" aria-hidden="true" />
+        <div className="hidden items-center gap-2 rounded-full border border-dashboard-line bg-dashboard-surface px-3 py-1.5 text-xs text-dashboard-muted sm:flex">
+          <span className="size-1.5 rounded-full bg-dashboard-green shadow-[0_0_0_3px_rgba(8,122,32,0.14)]" aria-hidden="true" />
           All systems operational
         </div>
       </div>

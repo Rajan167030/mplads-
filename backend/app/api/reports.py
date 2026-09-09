@@ -11,9 +11,12 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.core.deps import get_current_user
+from app.core.scope import scope_filter
 from app.models.investigation import Investigation
 from app.models.project import Project
 from app.models.risk_signal import RiskSignal
+from app.models.user import User
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -32,8 +35,11 @@ def _csv_response(rows: list[list], header: list[str], filename: str) -> Streami
 
 
 @router.get("/projects.csv")
-def export_projects_csv(db: Session = Depends(get_db)) -> StreamingResponse:
-    projects = db.query(Project).order_by(Project.risk_score.desc().nulls_last()).all()
+def export_projects_csv(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> StreamingResponse:
+    projects = scope_filter(db.query(Project), user).order_by(Project.risk_score.desc().nulls_last()).all()
     header = [
         "external_project_id", "project_name", "project_type", "state", "district", "status",
         "sanctioned_amount", "released_amount", "physical_progress", "financial_progress",
@@ -51,10 +57,12 @@ def export_projects_csv(db: Session = Depends(get_db)) -> StreamingResponse:
 
 
 @router.get("/risk-signals.csv")
-def export_risk_signals_csv(db: Session = Depends(get_db)) -> StreamingResponse:
+def export_risk_signals_csv(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> StreamingResponse:
     signals = (
-        db.query(RiskSignal, Project)
-        .join(Project, Project.id == RiskSignal.project_id)
+        scope_filter(db.query(RiskSignal, Project).join(Project, Project.id == RiskSignal.project_id), user)
         .order_by(RiskSignal.score.desc())
         .all()
     )
@@ -73,10 +81,12 @@ def export_risk_signals_csv(db: Session = Depends(get_db)) -> StreamingResponse:
 
 
 @router.get("/investigations.csv")
-def export_investigations_csv(db: Session = Depends(get_db)) -> StreamingResponse:
+def export_investigations_csv(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> StreamingResponse:
     investigations = (
-        db.query(Investigation, Project)
-        .join(Project, Project.id == Investigation.project_id)
+        scope_filter(db.query(Investigation, Project).join(Project, Project.id == Investigation.project_id), user)
         .order_by(Investigation.created_at.desc())
         .all()
     )

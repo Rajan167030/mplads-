@@ -30,5 +30,7 @@ class InvestigationOut(BaseModel):
     assigned_to_name: str | None
     notes: str | None
     resolution: str | None
+    current_level: str  # DISTRICT | STATE | MINISTRY
+    overdue_for_escalation: bool
     created_at: datetime
     updated_at: datetime

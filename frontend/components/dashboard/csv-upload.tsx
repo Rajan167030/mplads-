@@ -11,7 +11,7 @@ export function CsvUpload() {
   const [uploading, setUploading] = useState(false);
   const [report, setReport] = useState<IngestionReport | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const canUpload = user?.role === "ADMIN" || user?.role === "ANALYST";
+  const canUpload = user?.role === "MINISTRY";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

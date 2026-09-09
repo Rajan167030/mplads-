@@ -24,7 +24,7 @@ router = APIRouter(prefix="/ingestion", tags=["ingestion"])
 async def upload_projects_csv(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    user: User = Depends(require_role(UserRole.ADMIN, UserRole.ANALYST)),
+    user: User = Depends(require_role(UserRole.MINISTRY)),
 ) -> IngestionReport:
     if not file.filename or not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only .csv uploads are supported.")

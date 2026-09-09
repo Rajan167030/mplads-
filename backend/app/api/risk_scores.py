@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import log_audit_event
 from app.core.db import get_db
-from app.core.deps import require_role
+from app.core.deps import get_current_user, get_current_user_optional, require_role
+from app.core.scope import in_scope, scope_filter
 from app.models.enums import InvestigationStatus, UserRole
 from app.models.investigation import Investigation
 from app.models.project import Project
@@ -40,7 +41,7 @@ def _summary(project: Project) -> ProjectRiskSummary:
 @router.post("/run", response_model=RiskScoringRunOut)
 def trigger_risk_scoring(
     db: Session = Depends(get_db),
-    user: User = Depends(require_role(UserRole.ADMIN, UserRole.ANALYST)),
+    user: User = Depends(require_role(UserRole.MINISTRY)),
 ) -> RiskScoringRunOut:
     report = run_risk_scoring(db)
     log_audit_event(db, user.id, "RUN_RISK_SCORING", "Project", metadata={"band_counts": report.band_counts})
@@ -48,22 +49,30 @@ def trigger_risk_scoring(
 
 
 @router.get("/summary", response_model=RiskSummaryOut)
-def risk_summary(db: Session = Depends(get_db)) -> RiskSummaryOut:
-    band_counts: dict[str, int] = dict(
-        db.query(Project.risk_band, func.count(Project.id))
-        .filter(Project.risk_band.isnot(None))
-        .group_by(Project.risk_band)
-        .all()
-    )
+def risk_summary(
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
+) -> RiskSummaryOut:
+    project_query = db.query(Project)
+    signals_query = db.query(RiskSignal).join(Project, Project.id == RiskSignal.project_id)
+    investigations_query = db.query(Investigation).join(Project, Project.id == Investigation.project_id)
+    band_query = db.query(Project.risk_band, func.count(Project.id))
+    if user:
+        project_query = scope_filter(project_query, user)
+        signals_query = scope_filter(signals_query, user)
+        investigations_query = scope_filter(investigations_query, user)
+        band_query = scope_filter(band_query, user)
+
+    band_counts: dict[str, int] = dict(band_query.filter(Project.risk_band.isnot(None)).group_by(Project.risk_band).all())
     band_counts = {band.value: count for band, count in band_counts.items()}
 
     return RiskSummaryOut(
-        total_projects_scored=db.query(Project).filter(Project.risk_score.isnot(None)).count(),
+        total_projects_scored=project_query.filter(Project.risk_score.isnot(None)).count(),
         band_counts=band_counts,
-        total_risk_signals=db.query(RiskSignal).count(),
-        open_investigations=db.query(Investigation)
-        .filter(Investigation.status.in_((InvestigationStatus.OPEN, InvestigationStatus.IN_PROGRESS)))
-        .count(),
+        total_risk_signals=signals_query.count(),
+        open_investigations=investigations_query.filter(
+            Investigation.status.in_((InvestigationStatus.OPEN, InvestigationStatus.IN_PROGRESS))
+        ).count(),
     )
 
 
@@ -73,8 +82,9 @@ def top_risk_projects(
     limit: int = Query(default=50, le=500),
     offset: int = 0,
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> list[ProjectRiskSummary]:
-    query = db.query(Project).filter(Project.risk_score.isnot(None))
+    query = scope_filter(db.query(Project), user).filter(Project.risk_score.isnot(None))
     if band:
         query = query.filter(Project.risk_band == band.upper())
     projects = query.order_by(Project.risk_score.desc()).offset(offset).limit(limit).all()
@@ -82,9 +92,13 @@ def top_risk_projects(
 
 
 @router.get("/{project_id}/explain", response_model=RiskExplanationOut)
-def explain_risk_score(project_id: str, db: Session = Depends(get_db)) -> RiskExplanationOut:
+def explain_risk_score(
+    project_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> RiskExplanationOut:
     project = db.get(Project, project_id)
-    if not project:
+    if not project or not in_scope(project, user):
         raise HTTPException(status_code=404, detail="Project not found")
 
     signals = db.query(RiskSignal).filter(RiskSignal.project_id == project_id).all()

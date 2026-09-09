@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 
 import { getRiskSummary, getTopRiskProjects } from "@/lib/api";
 
@@ -21,12 +22,13 @@ export default async function RiskAlertsPage({
   let summary;
   let fetchError: string | null = null;
   try {
+    const token = (await cookies()).get("mplads_token")?.value;
     [projects, summary] = await Promise.all([
-      getTopRiskProjects({ band, limit: 50 }),
-      getRiskSummary(),
+      getTopRiskProjects({ band, limit: 50 }, token),
+      getRiskSummary(token),
     ]);
   } catch {
-    fetchError = "Could not reach the backend API.";
+    fetchError = "Could not reach the backend API, or you need to sign in to view risk alerts.";
   }
 
   return (

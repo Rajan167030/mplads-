@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+
 import { PatternExplorer } from "@/components/patterns/pattern-explorer";
 import { getPatternSummary } from "@/lib/api";
 
@@ -5,7 +7,8 @@ export default async function PatternsPage() {
   let data;
   let fetchError: string | null = null;
   try {
-    data = await getPatternSummary();
+    const token = (await cookies()).get("mplads_token")?.value;
+    data = await getPatternSummary(token);
   } catch {
     fetchError = "Could not reach the backend API.";
   }

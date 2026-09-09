@@ -14,6 +14,7 @@ PROJECT_COLUMNS: dict[str, list[str]] = {
     "state": ["State"],
     "district": ["District"],
     "constituency": ["Constituency", "PC", "Parliamentary Constituency"],
+    "mp_name": ["MP Name", "Member of Parliament"],
     "latitude": ["Latitude", "Lat"],
     "longitude": ["Longitude", "Lon", "Long"],
     "sanctioned_amount": ["Sanctioned Amount", "Sanctioned Amt", "Amount Sanctioned"],

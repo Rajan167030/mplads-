@@ -18,3 +18,4 @@ class UserOut(BaseModel):
     email: str
     full_name: str
     role: str
+    scope_value: str | None

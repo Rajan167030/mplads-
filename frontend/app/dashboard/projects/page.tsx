@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 
 import { listProjects } from "@/lib/api";
 
@@ -30,17 +31,21 @@ export default async function ProjectsPage({
   let result;
   let fetchError: string | null = null;
   try {
-    result = await listProjects({
-      state: params.state,
-      district: params.district,
-      project_type: params.project_type,
-      status: params.status,
-      risk_band: params.risk_band,
-      search: params.search,
-      sort_by: (params.sort_by as "risk_score" | "sanctioned_amount" | "start_date") ?? "risk_score",
-      limit,
-      offset: page * limit,
-    });
+    const token = (await cookies()).get("mplads_token")?.value;
+    result = await listProjects(
+      {
+        state: params.state,
+        district: params.district,
+        project_type: params.project_type,
+        status: params.status,
+        risk_band: params.risk_band,
+        search: params.search,
+        sort_by: (params.sort_by as "risk_score" | "sanctioned_amount" | "start_date") ?? "risk_score",
+        limit,
+        offset: page * limit,
+      },
+      token
+    );
   } catch {
     fetchError = "Could not reach the backend API.";
   }

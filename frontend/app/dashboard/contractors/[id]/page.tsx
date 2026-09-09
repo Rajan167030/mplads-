@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { ApiError, getContractor } from "@/lib/api";
@@ -8,9 +9,24 @@ export default async function ContractorDetailPage({ params }: { params: Promise
 
   let detail;
   try {
-    detail = await getContractor(id);
+    const token = (await cookies()).get("mplads_token")?.value;
+    detail = await getContractor(id, token);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
+    if (err instanceof ApiError && err.status === 401) {
+      return (
+        <main className="min-h-screen bg-dashboard-surface px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-[1400px]">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              <Link href="/" className="font-semibold underline">
+                Sign in
+              </Link>{" "}
+              to view contractor intelligence — this view requires an authenticated official account.
+            </div>
+          </div>
+        </main>
+      );
+    }
     throw err;
   }
 

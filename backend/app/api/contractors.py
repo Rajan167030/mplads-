@@ -2,8 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.core.deps import get_current_user
+from app.core.scope import scope_filter
 from app.models.contractor import Contractor
 from app.models.project import Project
+from app.models.user import User
 from app.schemas.contractor import (
     ContractorDetailOut,
     ContractorListItem,
@@ -37,8 +40,11 @@ def list_contractors(
     limit: int = Query(default=50, le=500),
     offset: int = 0,
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> ContractorListOut:
     query = db.query(Contractor).filter(Contractor.total_projects >= min_total_projects)
+    scoped_ids = scope_filter(db.query(Project.contractor_id), user).filter(Project.contractor_id.isnot(None)).distinct()
+    query = query.filter(Contractor.id.in_(scoped_ids))
     total = query.count()
 
     sort_column = {
@@ -52,17 +58,23 @@ def list_contractors(
 
 
 @router.get("/{contractor_id}", response_model=ContractorDetailOut)
-def get_contractor(contractor_id: str, db: Session = Depends(get_db)) -> ContractorDetailOut:
+def get_contractor(
+    contractor_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> ContractorDetailOut:
     contractor = db.get(Contractor, contractor_id)
     if not contractor:
         raise HTTPException(status_code=404, detail="Contractor not found")
 
     projects = (
-        db.query(Project)
+        scope_filter(db.query(Project), user)
         .filter(Project.contractor_id == contractor_id)
         .order_by(Project.risk_score.desc().nulls_last())
         .all()
     )
+    if not projects:
+        raise HTTPException(status_code=404, detail="Contractor not found")
 
     return ContractorDetailOut(
         contractor=_list_item(contractor),

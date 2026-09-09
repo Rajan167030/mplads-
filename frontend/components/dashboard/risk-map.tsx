@@ -105,5 +105,5 @@ export function RiskMap({ data }: { data: RiskMapResult }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
-  return <div ref={containerRef} className="h-[600px] w-full rounded-lg" />;
+  return <div ref={containerRef} className="h-[380px] w-full rounded-lg sm:h-[480px] lg:h-[600px]" />;
 }

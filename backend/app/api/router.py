@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api import (
     assistant,
     auth,
+    complaints,
     contractors,
     data_quality,
     entity_resolution,
@@ -25,6 +26,7 @@ api_router = APIRouter()
 api_router.include_router(health.router)
 api_router.include_router(auth.router)
 api_router.include_router(ingestion.router)
+api_router.include_router(complaints.router)
 api_router.include_router(data_quality.router)
 api_router.include_router(entity_resolution.router)
 api_router.include_router(risk_signals.router)

@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+
 import { NetworkGraph } from "@/components/dashboard/network-graph";
 import { getDataQuality, getOverviewGraph, getRiskSummary, type DataQuality, type OverviewGraph, type RiskSummary } from "@/lib/api";
 
@@ -22,7 +24,15 @@ export default async function DashboardOverviewPage() {
   let fetchError: string | null = null;
 
   try {
-    [data, risk, graph] = await Promise.all([getDataQuality(), getRiskSummary(), getOverviewGraph(15)]);
+    const token = (await cookies()).get("mplads_token")?.value;
+    [data, risk] = await Promise.all([getDataQuality(), getRiskSummary(token)]);
+    // Contractor network view spans many districts — restricted to State
+    // Nodal/Ministry (see graph.py); MP/District Authority just won't see it.
+    try {
+      graph = await getOverviewGraph(15, token);
+    } catch {
+      graph = null;
+    }
   } catch {
     fetchError = "Could not reach the backend API. Is it running at NEXT_PUBLIC_API_URL?";
   }

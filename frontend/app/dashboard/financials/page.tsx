@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+
 import { getFinancialsSummary } from "@/lib/api";
 
 function crore(amount: number) {
@@ -8,7 +10,8 @@ export default async function FinancialsPage() {
   let data;
   let fetchError: string | null = null;
   try {
-    data = await getFinancialsSummary();
+    const token = (await cookies()).get("mplads_token")?.value;
+    data = await getFinancialsSummary(token);
   } catch {
     fetchError = "Could not reach the backend API.";
   }

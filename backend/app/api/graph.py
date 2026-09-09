@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.core.deps import get_current_user, require_role
+from app.core.scope import in_scope
 from app.graph.relationships import (
     find_nearby_projects,
     find_related_projects,
@@ -9,7 +11,9 @@ from app.graph.relationships import (
     get_top_risk_contractor_network,
 )
 from app.models.contractor import Contractor
+from app.models.enums import UserRole
 from app.models.project import Project
+from app.models.user import User
 from app.schemas.graph import (
     ContractorNetworkEntryOut,
     ContractorRef,
@@ -39,9 +43,14 @@ def _project_ref(p: Project) -> ProjectRef:
 
 
 @router.get("/projects/{project_id}/related", response_model=list[RelatedProjectOut])
-def related_projects(project_id: str, limit: int = Query(default=10, le=50), db: Session = Depends(get_db)):
+def related_projects(
+    project_id: str,
+    limit: int = Query(default=10, le=50),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     project = db.get(Project, project_id)
-    if not project:
+    if not project or not in_scope(project, user):
         raise HTTPException(status_code=404, detail="Project not found")
 
     results = find_related_projects(db, project, limit=limit)
@@ -61,9 +70,10 @@ def nearby_projects(
     radius_km: float = Query(default=5.0, le=100.0),
     limit: int = Query(default=20, le=100),
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     project = db.get(Project, project_id)
-    if not project:
+    if not project or not in_scope(project, user):
         raise HTTPException(status_code=404, detail="Project not found")
 
     results = find_nearby_projects(db, project, radius_km=radius_km, limit=limit)
@@ -71,7 +81,11 @@ def nearby_projects(
 
 
 @router.get("/overview", response_model=OverviewGraphOut)
-def overview_graph(limit: int = Query(default=15, le=40), db: Session = Depends(get_db)) -> OverviewGraphOut:
+def overview_graph(
+    limit: int = Query(default=15, le=40),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_role(UserRole.STATE_NODAL, UserRole.MINISTRY)),
+) -> OverviewGraphOut:
     contractors, edges = get_top_risk_contractor_network(db, limit=limit)
     nodes = [
         GraphNode(
@@ -91,7 +105,12 @@ def overview_graph(limit: int = Query(default=15, le=40), db: Session = Depends(
 
 
 @router.get("/contractors/{contractor_id}/network", response_model=list[ContractorNetworkEntryOut])
-def contractor_network(contractor_id: str, limit: int = Query(default=10, le=50), db: Session = Depends(get_db)):
+def contractor_network(
+    contractor_id: str,
+    limit: int = Query(default=10, le=50),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_role(UserRole.STATE_NODAL, UserRole.MINISTRY)),
+):
     contractor = db.get(Contractor, contractor_id)
     if not contractor:
         raise HTTPException(status_code=404, detail="Contractor not found")

@@ -92,6 +92,16 @@ state/risk-band/project-type filters.
 ### AI Assistant
 ![AI assistant](docs/screenshots/14-assistant.png)
 
+### Public Transparency Portal — Hero
+No-login public view of the same data — fund journey, citizen impact by sector, regional
+accountability, and data-verification stats.
+![Public portal hero](docs/screenshots/15-public-hero.png)
+
+### Public Transparency Portal — Geography, filterable
+Project density heatmap with live state/sector filters, brand navy-to-lime ramp (deliberately
+not the red/orange "hot" palette — this view promises no risk-coded visuals).
+![Public portal map with filters](docs/screenshots/16-public-map.png)
+
 ## Stack
 
 - **Frontend**: Next.js (TypeScript, App Router) + Tailwind CSS + shadcn/ui + Recharts + MapLibre GL

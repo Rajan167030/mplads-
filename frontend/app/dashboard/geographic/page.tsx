@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+
 import { RiskMap } from "@/components/dashboard/risk-map";
 import { getMapFilterOptions, getRiskMap } from "@/lib/api";
 
@@ -17,9 +19,10 @@ export default async function GeographicPage({
   let filterOptions;
   let fetchError: string | null = null;
   try {
+    const token = (await cookies()).get("mplads_token")?.value;
     [data, filterOptions] = await Promise.all([
-      getRiskMap({ limit: 5000, state, risk_band, project_type }),
-      getMapFilterOptions(),
+      getRiskMap({ limit: 5000, state, risk_band, project_type }, token),
+      getMapFilterOptions(token),
     ]);
   } catch {
     fetchError = "Could not reach the backend API.";
@@ -96,7 +99,7 @@ export default async function GeographicPage({
           </div>
         )}
 
-        <div className="mt-4 flex gap-4 text-xs text-dashboard-muted">
+        <div className="mt-4 flex flex-wrap gap-4 text-xs text-dashboard-muted">
           <span className="flex items-center gap-1.5">
             <span className="size-3 rounded-full" style={{ background: "#bf1f26" }} /> Critical
           </span>

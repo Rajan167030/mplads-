@@ -1,0 +1,88 @@
+Traceback (most recent call last):
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\scripts\run_entity_resolution.py", line 36, in <module>
+    main()
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\scripts\run_entity_resolution.py", line 20, in main
+    report = run_entity_resolution(db)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\app\nlp\entity_resolution.py", line 135, in run_entity_resolution
+    report.embeddings_computed = compute_and_store_embeddings(db)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\app\nlp\entity_resolution.py", line 72, in compute_and_store_embeddings
+    vectors = embed_texts(texts)
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\app\nlp\embeddings.py", line 36, in embed_texts
+    return get_model().encode(texts, show_progress_bar=False, convert_to_numpy=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\sentence_transformers\SentenceTransformer.py", line 623, in encode
+    out_features = self.forward(features, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\sentence_transformers\SentenceTransformer.py", line 690, in forward
+    input = module(input, **module_kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1783, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1794, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\sentence_transformers\models\Transformer.py", line 393, in forward
+    output_states = self.auto_model(**trans_features, **kwargs, return_dict=False)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1783, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1794, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\transformers\models\bert\modeling_bert.py", line 1000, in forward
+    encoder_outputs = self.encoder(
+                      ^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1783, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1794, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\transformers\models\bert\modeling_bert.py", line 650, in forward
+    layer_outputs = layer_module(
+                    ^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\transformers\modeling_layers.py", line 94, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1783, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1794, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\transformers\utils\deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\transformers\models\bert\modeling_bert.py", line 588, in forward
+    layer_output = apply_chunking_to_forward(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\transformers\pytorch_utils.py", line 257, in apply_chunking_to_forward
+    return forward_fn(*input_tensors)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\transformers\models\bert\modeling_bert.py", line 596, in feed_forward_chunk
+    intermediate_output = self.intermediate(attention_output)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1783, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1794, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\transformers\models\bert\modeling_bert.py", line 513, in forward
+    hidden_states = self.intermediate_act_fn(hidden_states)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1783, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1794, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AANANDI\OneDrive\Desktop\sih\mplads-intelligence\backend\.venv\Lib\site-packages\transformers\activations.py", line 85, in forward
+    return self.act(input)
+           ^^^^^^^^^^^^^^^
+RuntimeError: [enforce fail at alloc_cpu.cpp:117] data. DefaultCPUAllocator: not enough memory: you tried to allocate 4521984 bytes.

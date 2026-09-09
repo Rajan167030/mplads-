@@ -5,6 +5,27 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { ApiError, getMe, login as apiLogin, type CurrentUser } from "@/lib/api";
 
 const TOKEN_STORAGE_KEY = "mplads_token";
+// Mirrors the token into a (non-httpOnly) cookie alongside localStorage, so
+// server components — which render on the Next.js server and can't reach
+// localStorage — can read it via next/headers cookies() and scope their
+// dashboard data fetches to the signed-in official's jurisdiction.
+const TOKEN_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 8; // matches backend access_token_expire_minutes
+
+function setTokenCookie(token: string) {
+  try {
+    document.cookie = `${TOKEN_STORAGE_KEY}=${token}; path=/; max-age=${TOKEN_COOKIE_MAX_AGE_SECONDS}; samesite=lax`;
+  } catch {
+    // per-viewer convenience only — dashboard pages fall back to unscoped/public data without it
+  }
+}
+
+function clearTokenCookie() {
+  try {
+    document.cookie = `${TOKEN_STORAGE_KEY}=; path=/; max-age=0`;
+  } catch {
+    // ignore
+  }
+}
 
 interface AuthContextValue {
   user: CurrentUser | null;
@@ -36,6 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const me = await getMe(stored);
           if (!cancelled) {
+            setTokenCookie(stored);
             setToken(stored);
             setUser(me);
           }
@@ -45,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch {
             // ignore
           }
+          clearTokenCookie();
         }
       }
 
@@ -65,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // per-viewer convenience only — session still works for this page load without it
     }
+    setTokenCookie(access_token);
     setToken(access_token);
     setUser(me);
   }
@@ -75,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
+    clearTokenCookie();
     setToken(null);
     setUser(null);
   }

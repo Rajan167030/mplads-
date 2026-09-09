@@ -454,3 +454,61 @@ disclosed, not a surprise, since regenerating source data necessarily resets eve
 computed downstream of it. Also added `GET /api/map/filters` and state/risk-band/
 project-type dropdowns to the Geographic Analysis page while already touching this area,
 since "why can't I filter the map" was the user's other ask in the same message.
+
+## ADR-016: Scope-based RBAC — MP/District Authority/State Nodal/Ministry replace ADMIN/OFFICER/ANALYST/VIEWER
+
+**Date:** 2026-09-08
+
+**Context:** The user supplied a permission-matrix design for four government-official
+roles, each restricted to their own jurisdiction — MP (own constituency), District
+Authority (own district), State Nodal (own state), Ministry (national) — plus a
+verify/escalate workflow on flagged investigations, and asked for a full implementation.
+The prior role model (`ADMIN/OFFICER/ANALYST/VIEWER`) only gated 5 write/trigger
+endpoints; per ADR-009, every GET endpoint was intentionally left open, reasoning that
+the login page sits alongside a public transparency portal. That portal
+(`frontend/app/public/page.tsx`) turned out to be fully built and genuinely
+unauthenticated — it calls `financials/summary`, `projects`, `map/risk`, `map/filters`,
+and `data-quality` with no token — so a blanket lockdown would have broken it. The
+portal's own footer also already promised "risk analysis and investigation tools are
+available to signed-in officers," a promise `patterns`/`graph`/`risk-scores`/
+`contractors` weren't actually keeping.
+
+**Decision:** This narrows ADR-009 rather than reversing it. Two categories:
+- **Public-portal endpoints** (`projects`, `financials/summary`, `map/risk`,
+  `map/filters`, `risk-scores/summary`, `patterns/summary`) stay reachable with no
+  token — anonymous behavior is unchanged — but now scope themselves via a new
+  `get_current_user_optional` dependency when a signed-in official *is* calling them.
+  `risk-scores/summary` and `patterns/summary` are in this bucket even though they're
+  risk-flavored, because the pre-login landing page (`frontend/app/page.tsx`) renders
+  its hero stats from them server-side, unauthenticated — an easy miss caught by
+  actually tracing every caller of these functions before locking them down.
+- **Officer-only analysis endpoints** (`risk-signals`, `risk-scores/top`,
+  `risk-scores/{id}/explain`, `contractors`, `graph`, `reports/*.csv`,
+  `entity-resolution/matches`, `ml/evaluation`) now require authentication
+  unconditionally — closing the gap with the footer's claim.
+
+Every non-Ministry role is confined to one `Project` column via a new
+`User.scope_value` string, matched by role (`app/core/scope.py`): MP → `constituency`,
+District Authority → `district`, State Nodal → `state`; Ministry stays unscoped.
+The 5 pipeline-trigger endpoints and user management moved from
+`ADMIN, ANALYST`/`ADMIN` to `MINISTRY` only, matching the matrix's "model
+config/threshold tuning — Ministry, admin only." Investigations gained
+`current_level` (DISTRICT → STATE → MINISTRY) and a `POST /investigations/{id}/escalate`
+endpoint; District Authority and State Nodal can only verify or escalate a case while
+it sits at their own tier and within their own scope, Ministry can act on any case at
+any tier ("override/final"). `overdue_for_escalation` on `InvestigationOut` is a
+read-time computed flag (open, still at DISTRICT, older than 30 days) rather than a
+scheduled auto-escalation job — a real cron step was judged disproportionate for this
+scope; it's a visible badge, not an automatic action.
+
+**Consequence:** The `users` table only ever held seed/demo accounts, so the migration
+(`a1b2c3d4e5f6`) deletes existing rows outright rather than remapping old role strings —
+`scripts/seed_users.py` reseeds `mp_demo`/`district_demo`/`state_demo`/`ministry_demo`
+(password `Demo@123`, per the user's own demo-credentials table) scoped to Pune PC /
+Pune / Maharashtra respectively, since the synthetic generator populates
+`Project.constituency` as `f"{district} PC"`. `graph/overview` and
+`graph/contractors/{id}/network` (which span many districts/contractors at once) are
+restricted to `STATE_NODAL`/`MINISTRY` only, matching the matrix's "cross-district
+comparison" restriction on MP/District. The frontend's login role selector, sidebar nav,
+and the three `user.role === "ADMIN"`-style checks (CSV upload, user management,
+investigation controls) all moved to the new role names in the same change.

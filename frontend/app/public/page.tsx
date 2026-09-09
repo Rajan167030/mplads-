@@ -7,6 +7,7 @@ import {
   HeartPulse,
   Landmark,
   MapPinned,
+  Menu,
   ShieldCheck,
   Sparkles,
   TrendingUp,
@@ -16,13 +17,17 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { AreaSearch } from "@/components/public/area-search";
+import { MpBreakdown } from "@/components/public/mp-breakdown";
+import { NearMe } from "@/components/public/near-me";
 import { PublicHeatmap } from "@/components/public/public-heatmap";
 import {
   getDataQuality,
+  getFinancialsByMp,
   getFinancialsSummary,
   getMapFilterOptions,
   getRiskMap,
   listProjects,
+  type FinancialsByMpResult,
   type ProjectListItem,
   type RiskMapResult,
 } from "@/lib/api";
@@ -47,6 +52,15 @@ const STATUS_STYLES: Record<string, string> = {
 function crore(amount: number) {
   return `₹${(amount / 10000000).toFixed(2)} Cr`;
 }
+
+const NAV_LINKS: [string, string][] = [
+  ["Home", "#top"],
+  ["Fund Journey", "#fund-journey"],
+  ["Regions", "#regions"],
+  ["MPs", "#mp-accountability"],
+  ["Verification", "#documents"],
+  ["Find My Area", "#my-area"],
+];
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -73,10 +87,11 @@ export default async function PublicPortalPage({
   let heatmapData: RiskMapResult | null = null;
   let states: string[] = [];
   let projectTypes: string[] = [];
+  let mpBreakdown: FinancialsByMpResult | null = null;
   let fetchError: string | null = null;
 
   try {
-    const [dq, fin, completedRes, ongoingRes, delayedRes, projectsRes, mapRes, filterOptions] = await Promise.all([
+    const [dq, fin, completedRes, ongoingRes, delayedRes, projectsRes, mapRes, filterOptions, mpRes] = await Promise.all([
       getDataQuality(),
       getFinancialsSummary(),
       listProjects({ status: "COMPLETED", limit: 1 }),
@@ -85,6 +100,7 @@ export default async function PublicPortalPage({
       listProjects({ project_type: sector, limit: 8, sort_by: "sanctioned_amount" }),
       getRiskMap({ project_type: sector, limit: 5000 }),
       getMapFilterOptions(),
+      getFinancialsByMp(),
     ]);
     dataQuality = dq;
     financials = fin;
@@ -95,6 +111,7 @@ export default async function PublicPortalPage({
     heatmapData = mapRes;
     states = filterOptions.states;
     projectTypes = filterOptions.project_types;
+    mpBreakdown = mpRes;
   } catch {
     fetchError = "Could not reach the backend API. Is it running at NEXT_PUBLIC_API_URL?";
   }
@@ -134,13 +151,7 @@ export default async function PublicPortalPage({
             </div>
           </div>
           <nav className="hidden items-center gap-1 rounded-full border border-white/15 bg-white/20 px-2 py-1 shadow-lg backdrop-blur-md lg:flex" aria-label="Public site navigation">
-            {[
-              ["Home", "#top"],
-              ["Fund Journey", "#fund-journey"],
-              ["Regions", "#regions"],
-              ["Verification", "#documents"],
-              ["Find My Area", "#my-area"],
-            ].map(([label, href], i) => (
+            {NAV_LINKS.map(([label, href], i) => (
               <a
                 key={label}
                 href={href}
@@ -152,12 +163,52 @@ export default async function PublicPortalPage({
               </a>
             ))}
           </nav>
-          <Link
-            href="/"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-dashboard-navy hover:bg-slate-100"
-          >
-            Login
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <details className="group relative lg:hidden">
+              <summary
+                aria-label="Open site navigation"
+                className="grid size-9 cursor-pointer list-none place-items-center rounded-full border border-white/15 bg-white/10 text-white [&::-webkit-details-marker]:hidden"
+              >
+                <Menu size={18} />
+              </summary>
+              <div className="absolute right-0 top-[calc(100%+0.5rem)] w-52 rounded-2xl border border-slate-200 bg-white p-1.5 text-slate-900 shadow-xl">
+                {NAV_LINKS.map(([label, href]) => (
+                  <a
+                    key={label}
+                    href={href}
+                    className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-slate-50"
+                  >
+                    {label}
+                  </a>
+                ))}
+                <div className="my-1 border-t border-slate-100" />
+                <Link href="/complaint" className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50">
+                  File a Complaint
+                </Link>
+                <Link href="/complaint/status" className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-slate-50">
+                  Track Complaint
+                </Link>
+              </div>
+            </details>
+            <Link
+              href="/complaint/status"
+              className="hidden text-xs font-semibold text-slate-100 hover:text-white sm:inline"
+            >
+              Track Complaint
+            </Link>
+            <Link
+              href="/complaint"
+              className="hidden items-center gap-1.5 rounded-full bg-red-500 px-4 py-2 text-xs font-bold text-white hover:bg-red-600 sm:inline-flex"
+            >
+              File a Complaint
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-dashboard-navy hover:bg-slate-100"
+            >
+              Login
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -177,7 +228,7 @@ export default async function PublicPortalPage({
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/5" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/55 via-black/10 to-transparent" />
 
-        <div className="relative mx-auto flex min-h-[640px] max-w-7xl flex-col justify-end px-4 pb-28 pt-40 sm:min-h-[700px] sm:px-6 sm:pb-32 lg:px-8">
+        <div className="relative mx-auto flex min-h-[640px] max-w-7xl flex-col justify-end gap-10 px-4 pb-28 pt-40 sm:min-h-[700px] sm:px-6 sm:pb-32 lg:flex-row lg:items-end lg:justify-between lg:px-8">
           <div className="max-w-2xl">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-dashboard-lime">
               Government of India Initiative
@@ -190,27 +241,37 @@ export default async function PublicPortalPage({
               centres, and public infrastructure across every constituency in India.
             </p>
             <div className="mt-7 h-1 w-9 bg-cyan-300" aria-hidden="true" />
+
+            <div className="mt-8 flex gap-6">
+              <a
+                href="#documents"
+                className="flex flex-col items-center gap-2 text-[11px] font-medium text-slate-200 hover:text-white"
+              >
+                <span className="grid size-14 place-items-center rounded-full border border-white/15 bg-white/5 text-dashboard-lime">
+                  <FileText size={22} />
+                </span>
+                Verification
+              </a>
+              <a
+                href="#my-area"
+                className="flex flex-col items-center gap-2 text-[11px] font-medium text-slate-200 hover:text-white"
+              >
+                <span className="grid size-14 place-items-center rounded-full border border-white/15 bg-white/5 text-dashboard-lime">
+                  <MapPinned size={22} />
+                </span>
+                Find My Area
+              </a>
+            </div>
           </div>
 
-          <div className="mt-10 flex gap-6 lg:ml-auto lg:mr-2">
-            <a
-              href="#documents"
-              className="flex flex-col items-center gap-2 text-[11px] font-medium text-slate-200 hover:text-white"
-            >
-              <span className="grid size-14 place-items-center rounded-full border border-white/15 bg-white/5 text-dashboard-lime">
-                <FileText size={22} />
-              </span>
-              Verification
-            </a>
-            <a
-              href="#my-area"
-              className="flex flex-col items-center gap-2 text-[11px] font-medium text-slate-200 hover:text-white"
-            >
-              <span className="grid size-14 place-items-center rounded-full border border-white/15 bg-white/5 text-dashboard-lime">
-                <MapPinned size={22} />
-              </span>
-              Find My Area
-            </a>
+          <div className="mx-auto size-48 shrink-0 overflow-hidden rounded-full sm:size-64 lg:mx-0 lg:mb-2 lg:size-80 lg:-translate-y-16">
+            <Image
+              src="/mplads-pm-portrait-transparent.png"
+              alt="Hon'ble Prime Minister of India"
+              width={384}
+              height={384}
+              className="aspect-square w-full object-cover"
+            />
           </div>
         </div>
 
@@ -356,7 +417,7 @@ export default async function PublicPortalPage({
                   <table className="w-full min-w-[760px] text-left text-xs">
                     <thead className="bg-slate-50 text-[10px] font-semibold uppercase text-slate-500">
                       <tr>
-                        {["Project", "Location", "Sanctioned", "Status", "Physical Progress"].map((h) => (
+                        {["Project", "Location", "Sanctioned", "Status", "Physical Progress", ""].map((h) => (
                           <th key={h} className="px-3 py-2.5">{h}</th>
                         ))}
                       </tr>
@@ -380,6 +441,11 @@ export default async function PublicPortalPage({
                           <td className="px-3 py-3">
                             <span className="font-semibold text-emerald-600">{p.physical_progress}%</span>
                           </td>
+                          <td className="px-3 py-3">
+                            <Link href={`/complaint/${p.id}`} className="font-semibold text-red-600 hover:underline">
+                              Report issue
+                            </Link>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -400,8 +466,7 @@ export default async function PublicPortalPage({
                 <h2 className="mt-2 font-display text-2xl font-bold text-slate-900">Which States Convert Funds Fastest?</h2>
                 <p className="mt-2 max-w-2xl text-sm text-slate-500">
                   Utilization rate — money actually spent on the ground versus what was released — by state, among
-                  the top states by total sanctioned amount. Constituency- and MP-level attribution isn&apos;t part
-                  of this dataset yet; state-level utilization is the honest comparison available today.
+                  the top states by total sanctioned amount.
                 </p>
 
                 <div className="mt-6 space-y-2.5">
@@ -431,6 +496,24 @@ export default async function PublicPortalPage({
                 )}
               </section>
             )}
+
+            {/* ---------------------------------------------------------- */}
+            {/* MP ACCOUNTABILITY — state + MP wise project attribution     */}
+            {/* ---------------------------------------------------------- */}
+            <section id="mp-accountability" className="border-t border-slate-200 py-9">
+              <SectionEyebrow>MP-wise accountability</SectionEyebrow>
+              <h2 className="mt-2 font-display text-2xl font-bold text-slate-900">
+                Which MPs Have Sanctioned the Most Works?
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm text-slate-500">
+                Every project sanctioned under MPLADS is recommended by a Member of Parliament for their
+                constituency. Filter by state to see which MPs in that state have sanctioned the most works, and how
+                much of that money has actually been released and spent.
+              </p>
+              <div className="mt-6">
+                <MpBreakdown states={states} initial={mpBreakdown} />
+              </div>
+            </section>
 
             {/* ---------------------------------------------------------- */}
             {/* MAP                                                         */}
@@ -511,6 +594,7 @@ export default async function PublicPortalPage({
                 near you.
               </p>
               <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <NearMe />
                 <AreaSearch states={states} />
               </div>
             </section>

@@ -12,5 +12,8 @@ class User(UUIDPKMixin, TimestampMixin, Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     full_name: Mapped[str] = mapped_column(String(255))
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole, native_enum=False, length=32), default=UserRole.VIEWER)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole, native_enum=False, length=32), default=UserRole.MP)
+    # Matches Project.constituency (MP), Project.district (DISTRICT_AUTHORITY), or
+    # Project.state (STATE_NODAL). NULL for MINISTRY — unscoped/national access.
+    scope_value: Mapped[str | None] = mapped_column(String(128), nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True)

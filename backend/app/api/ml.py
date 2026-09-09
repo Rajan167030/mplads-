@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.audit import log_audit_event
 from app.core.db import get_db
-from app.core.deps import require_role
+from app.core.deps import get_current_user, require_role
 from app.ml.anomaly_model import run_ml_detection
 from app.ml.evaluation import evaluate
 from app.models.enums import UserRole
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/ml", tags=["ml"])
 @router.post("/run", response_model=MLDetectionRunOut)
 def trigger_ml_detection(
     db: Session = Depends(get_db),
-    user: User = Depends(require_role(UserRole.ADMIN, UserRole.ANALYST)),
+    user: User = Depends(require_role(UserRole.MINISTRY)),
 ) -> MLDetectionRunOut:
     report = run_ml_detection(db)
     log_audit_event(db, user.id, "RUN_ML_DETECTION", "RiskSignal", metadata={"anomalies_flagged": report.anomalies_flagged})
@@ -31,7 +31,7 @@ def trigger_ml_detection(
 
 
 @router.get("/evaluation", response_model=MLEvaluationOut)
-def get_ml_evaluation(db: Session = Depends(get_db)) -> MLEvaluationOut:
+def get_ml_evaluation(db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> MLEvaluationOut:
     report = evaluate(db)
     return MLEvaluationOut(
         total_projects=report.total_projects,

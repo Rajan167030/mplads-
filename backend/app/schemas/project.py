@@ -28,6 +28,30 @@ class ProjectListOut(BaseModel):
     items: list[ProjectListItem]
 
 
+class NearbyProjectItem(BaseModel):
+    id: uuid.UUID
+    external_project_id: str
+    project_name: str
+    project_type: str
+    state: str
+    district: str
+    constituency: str | None
+    status: str
+    sanctioned_amount: float
+    physical_progress: float
+    distance_km: float
+
+
+class NearbyProjectsOut(BaseModel):
+    # Best-guess area, taken from the single nearest project — not real
+    # reverse geocoding, just a nearest-known-project heuristic, so callers
+    # should treat it as a suggestion when nearest_distance_km is small.
+    recommended_state: str | None
+    recommended_district: str | None
+    nearest_distance_km: float | None
+    projects: list[NearbyProjectItem]
+
+
 class ProjectDetailOut(BaseModel):
     id: uuid.UUID
     external_project_id: str
@@ -38,6 +62,8 @@ class ProjectDetailOut(BaseModel):
     state: str
     district: str
     constituency: str | None
+    mp_name: str | None
+    data_source: str
     latitude: float | None
     longitude: float | None
     sanctioned_amount: float

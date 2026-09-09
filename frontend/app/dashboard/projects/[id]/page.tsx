@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { ApiError, explainRisk, getProject, getProjectTimeline, getRelatedProjects } from "@/lib/api";
@@ -22,18 +23,20 @@ function Stat({ label, value }: { label: string; value: string }) {
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
+  const token = (await cookies()).get("mplads_token")?.value;
+
   let project;
   try {
-    project = await getProject(id);
+    project = await getProject(id, token);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
     throw err;
   }
 
   const [timelineResult, explanationResult, relatedResult] = await Promise.allSettled([
-    getProjectTimeline(id),
-    explainRisk(id),
-    getRelatedProjects(id, 5),
+    getProjectTimeline(id, token),
+    explainRisk(id, token),
+    getRelatedProjects(id, 5, token),
   ]);
 
   const timeline = timelineResult.status === "fulfilled" ? timelineResult.value : null;
@@ -49,9 +52,19 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
         <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{project.project_name}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{project.project_name}</h1>
+              <span
+                className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                  project.data_source === "REAL_MPLADS" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {project.data_source === "REAL_MPLADS" ? "Real government data" : "Synthetic (demo)"}
+              </span>
+            </div>
             <p className="mt-1 text-sm text-dashboard-muted">
               {project.external_project_id} · {project.district}, {project.state} · {project.project_type.replace(/_/g, " ")}
+              {project.mp_name && <> · MP: {project.mp_name}</>}
             </p>
           </div>
           {project.risk_band && project.risk_score !== null && (

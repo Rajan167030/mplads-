@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
 from app.models.base import TimestampMixin, UUIDPKMixin
-from app.models.enums import ProjectStatus, ProjectType, Severity
+from app.models.enums import DataSource, ProjectStatus, ProjectType, Severity
 
 # all-MiniLM-L6-v2 (used for multilingual-adjacent sentence embeddings in Phase 3)
 EMBEDDING_DIM = 384
@@ -29,6 +29,10 @@ class Project(UUIDPKMixin, TimestampMixin, Base):
     state: Mapped[str] = mapped_column(String(128), index=True)
     district: Mapped[str] = mapped_column(String(128), index=True)
     constituency: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    mp_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    data_source: Mapped[DataSource] = mapped_column(
+        Enum(DataSource, native_enum=False, length=16), default=DataSource.SYNTHETIC
+    )
 
     latitude: Mapped[float | None] = mapped_column(nullable=True)
     longitude: Mapped[float | None] = mapped_column(nullable=True)
