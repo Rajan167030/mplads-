@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { getNearbyProjects, listProjects, type NearbyProjectItem, type ProjectListItem } from "@/lib/api";
+import { demoNearbyProjects, filterDemoProjects, isNetworkError } from "@/lib/demo-data";
 
 function crore(amount: number) {
   return `₹${(amount / 10000000).toFixed(2)} Cr`;
@@ -31,8 +32,9 @@ export function ComplaintPicker() {
         try {
           const res = await getNearbyProjects(position.coords.latitude, position.coords.longitude, 6);
           setNearby(res.projects);
-        } catch {
-          setLocationError("Could not reach the backend API right now — try again shortly.");
+        } catch (err) {
+          if (isNetworkError(err)) setNearby(demoNearbyProjects(position.coords.latitude, position.coords.longitude, 6).projects);
+          else setLocationError("Something went wrong. Please try again.");
         } finally {
           setLocating(false);
         }
@@ -56,8 +58,8 @@ export function ComplaintPicker() {
     try {
       const res = await listProjects({ search: query.trim(), limit: 8, sort_by: "sanctioned_amount" });
       setSearchResults(res.items);
-    } catch {
-      setSearchResults([]);
+    } catch (err) {
+      setSearchResults(isNetworkError(err) ? filterDemoProjects({ search: query.trim(), limit: 8 }).items : []);
     } finally {
       setSearching(false);
     }

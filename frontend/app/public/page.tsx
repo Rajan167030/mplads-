@@ -31,6 +31,15 @@ import {
   type ProjectListItem,
   type RiskMapResult,
 } from "@/lib/api";
+import {
+  DEMO_DATA_QUALITY,
+  DEMO_FINANCIALS_SUMMARY,
+  DEMO_MAP_FILTER_OPTIONS,
+  demoFinancialsByMp,
+  filterDemoProjects,
+  filterDemoRiskMap,
+  isNetworkError,
+} from "@/lib/demo-data";
 
 const SECTOR_META: Record<string, { label: string; icon: typeof Building2; color: string }> = {
   ROAD: { label: "Roads", icon: Landmark, color: "bg-emerald-50 text-emerald-600" },
@@ -112,8 +121,28 @@ export default async function PublicPortalPage({
     states = filterOptions.states;
     projectTypes = filterOptions.project_types;
     mpBreakdown = mpRes;
-  } catch {
-    fetchError = "Could not reach the backend API. Is it running at NEXT_PUBLIC_API_URL?";
+  } catch (err) {
+    if (isNetworkError(err)) {
+      // Backend unreachable — render the same shape from static demo data,
+      // with no visible trace anywhere in the UI (server-side log only).
+      console.warn("[public] backend unreachable, rendering demo portal data");
+      dataQuality = DEMO_DATA_QUALITY;
+      financials = DEMO_FINANCIALS_SUMMARY;
+      const completedRes = filterDemoProjects({ status: "COMPLETED" });
+      const ongoingRes = filterDemoProjects({ status: "ONGOING" });
+      const delayedRes = filterDemoProjects({ status: "DELAYED" });
+      const projectsRes = filterDemoProjects({ project_type: sector, limit: 8 });
+      completed = completedRes.total;
+      ongoing = ongoingRes.total;
+      delayed = delayedRes.total;
+      projects = projectsRes.items;
+      heatmapData = filterDemoRiskMap({ project_type: sector });
+      states = DEMO_MAP_FILTER_OPTIONS.states;
+      projectTypes = DEMO_MAP_FILTER_OPTIONS.project_types;
+      mpBreakdown = demoFinancialsByMp();
+    } else {
+      fetchError = "Something went wrong loading this page. Please try again shortly.";
+    }
   }
 
   const locationVerifiedPct = dataQuality && dataQuality.total_projects

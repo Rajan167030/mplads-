@@ -10,7 +10,7 @@ export default async function PatternsPage() {
     const token = (await cookies()).get("mplads_token")?.value;
     data = await getPatternSummary(token);
   } catch {
-    fetchError = "Could not reach the backend API.";
+    fetchError = "Something went wrong loading this page.";
   }
 
   return (

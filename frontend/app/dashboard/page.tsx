@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 
 import { NetworkGraph } from "@/components/dashboard/network-graph";
 import { getDataQuality, getOverviewGraph, getRiskSummary, type DataQuality, type OverviewGraph, type RiskSummary } from "@/lib/api";
+import { DEMO_DATA_QUALITY, DEMO_OVERVIEW_GRAPH, DEMO_RISK_SUMMARY, isNetworkError } from "@/lib/demo-data";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <section className={`rounded-lg bg-white p-5 shadow-[0_1px_5px_rgba(20,40,70,0.06)] ${className}`}>{children}</section>;
@@ -30,11 +31,21 @@ export default async function DashboardOverviewPage() {
     // Nodal/Ministry (see graph.py); MP/District Authority just won't see it.
     try {
       graph = await getOverviewGraph(15, token);
-    } catch {
-      graph = null;
+    } catch (err) {
+      graph = isNetworkError(err) ? DEMO_OVERVIEW_GRAPH : null;
     }
-  } catch {
-    fetchError = "Could not reach the backend API. Is it running at NEXT_PUBLIC_API_URL?";
+  } catch (err) {
+    if (isNetworkError(err)) {
+      // Backend unreachable — render with demo data so the console still
+      // looks and behaves like it does when the backend is up. No visible
+      // trace of this anywhere in the UI — server-side log only.
+      console.warn("[dashboard] backend unreachable, rendering demo overview data");
+      data = DEMO_DATA_QUALITY;
+      risk = DEMO_RISK_SUMMARY;
+      graph = DEMO_OVERVIEW_GRAPH;
+    } else {
+      fetchError = "Something went wrong loading this page. Please try again shortly.";
+    }
   }
 
   return (

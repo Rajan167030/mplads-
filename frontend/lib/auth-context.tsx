@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 import { ApiError, getMe, login as apiLogin, type CurrentUser } from "@/lib/api";
+import { demoTokenFor, demoUserFromToken, findDemoAccount, isDemoToken, isNetworkError } from "@/lib/demo-data";
 
 const TOKEN_STORAGE_KEY = "mplads_token";
 // Mirrors the token into a (non-httpOnly) cookie alongside localStorage, so
@@ -53,7 +54,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // localStorage unavailable (private browsing, etc.) — proceed unauthenticated
       }
 
-      if (stored) {
+      if (stored && isDemoToken(stored)) {
+        // Demo session created while the backend was unreachable — reconstruct
+        // it locally rather than calling a backend that may still be down.
+        const demoUser = demoUserFromToken(stored);
+        if (demoUser && !cancelled) {
+          setTokenCookie(stored);
+          setToken(stored);
+          setUser(demoUser);
+        }
+      } else if (stored) {
         try {
           const me = await getMe(stored);
           if (!cancelled) {
@@ -81,15 +91,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    const { access_token } = await apiLogin(email, password);
-    const me = await getMe(access_token);
+    let accessToken: string;
+    let me: CurrentUser;
     try {
-      localStorage.setItem(TOKEN_STORAGE_KEY, access_token);
+      const tokenResponse = await apiLogin(email, password);
+      accessToken = tokenResponse.access_token;
+      me = await getMe(accessToken);
+    } catch (err) {
+      // Backend unreachable (not just a rejected login) — fall back to a demo
+      // account so the console/pitch demo still works without it. A real
+      // rejection (wrong password, 4xx/5xx from a live backend) still throws.
+      const demoAccount = isNetworkError(err) ? findDemoAccount(email, password) : undefined;
+      if (!demoAccount) throw err;
+      accessToken = demoTokenFor(demoAccount.user);
+      me = demoAccount.user;
+    }
+
+    try {
+      localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
     } catch {
       // per-viewer convenience only — session still works for this page load without it
     }
-    setTokenCookie(access_token);
-    setToken(access_token);
+    setTokenCookie(accessToken);
+    setToken(accessToken);
     setUser(me);
   }
 

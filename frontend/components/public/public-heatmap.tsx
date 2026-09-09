@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 setWorkerUrl("/maplibre-gl-worker.mjs");
 
 import { getRiskMap, type RiskMapResult } from "@/lib/api";
+import { filterDemoRiskMap, isNetworkError } from "@/lib/demo-data";
 
 const SECTOR_LABELS: Record<string, string> = {
   ROAD: "Roads",
@@ -149,8 +150,9 @@ export function PublicHeatmap({
         limit: MAP_LIMIT,
       });
       setData(result);
-    } catch {
-      setError("Could not refresh the map — try again shortly.");
+    } catch (err) {
+      if (isNetworkError(err)) setData(filterDemoRiskMap({ state: nextState || undefined, project_type: nextSector || undefined }));
+      else setError("Could not refresh the map — try again shortly.");
     } finally {
       setLoading(false);
     }

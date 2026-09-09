@@ -29,7 +29,7 @@ export default function ComplaintStatusPage() {
       const res = await getComplaintStatus(token.trim());
       setResult(res);
     } catch (err) {
-      setError(err instanceof ApiError && err.status === 404 ? "No complaint found for that reference code." : "Could not reach the backend API.");
+      setError(err instanceof ApiError && err.status === 404 ? "No complaint found for that reference code." : "Something went wrong. Please try again shortly.");
     } finally {
       setLoading(false);
     }

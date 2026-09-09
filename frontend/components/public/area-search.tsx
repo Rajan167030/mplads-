@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { listProjects, type ProjectListItem } from "@/lib/api";
+import { filterDemoProjects, isNetworkError } from "@/lib/demo-data";
 
 function crore(amount: number) {
   return `₹${(amount / 10000000).toFixed(2)} Cr`;
@@ -39,9 +40,15 @@ export function AreaSearch({ states }: { states: string[] }) {
       const res = await listProjects({ state: state || undefined, district: district || undefined, limit: 12, sort_by: "sanctioned_amount" });
       setResults(res.items);
       setTotal(res.total);
-    } catch {
-      setError("Could not reach the backend API right now — try again shortly.");
-      setResults(null);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        const res = filterDemoProjects({ state: state || undefined, district: district || undefined, limit: 12 });
+        setResults(res.items);
+        setTotal(res.total);
+      } else {
+        setError("Something went wrong. Please try again.");
+        setResults(null);
+      }
     } finally {
       setLoading(false);
     }

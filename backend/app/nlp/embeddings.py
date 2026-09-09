@@ -20,7 +20,13 @@ MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
 
 @lru_cache(maxsize=1)
 def get_model():
-    from sentence_transformers import SentenceTransformer
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError as e:
+        raise RuntimeError(
+            "Entity resolution is unavailable on this deployment "
+            "(sentence-transformers/torch excluded to fit the host's size limit)."
+        ) from e
 
     model = SentenceTransformer(MODEL_NAME)
     assert model.get_sentence_embedding_dimension() == EMBEDDING_DIM, (

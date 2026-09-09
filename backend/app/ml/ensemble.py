@@ -26,12 +26,10 @@ evidence/explanations to be comparable.
 """
 
 import numpy as np
-import torch
 from sklearn.cluster import DBSCAN
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import RobustScaler
-from torch import nn
 
 CONTAMINATION = 0.05
 RANDOM_STATE = 42
@@ -77,46 +75,83 @@ def fit_isolation_forest(X_scaled: np.ndarray) -> tuple[np.ndarray, np.ndarray, 
     return anomaly_scores, is_outlier, model
 
 
-class _Autoencoder(nn.Module):
-    def __init__(self, input_dim: int):
-        super().__init__()
+class _Autoencoder:
+    """Plain-numpy MLP autoencoder — input -> hidden -> bottleneck -> hidden ->
+    input, ReLU between every layer but the last. Same architecture the torch
+    version used; forward, backprop and Adam are hand-rolled below so this
+    module carries no torch dependency (torch + its CUDA wheels were ~2.5GB
+    of a Render free-tier deploy for a network four `Linear` layers deep)."""
+
+    def __init__(self, input_dim: int, rng: np.random.Generator):
         hidden = max(2, input_dim // 2)
         bottleneck = max(1, input_dim // 4)
-        self.encoder = nn.Sequential(
-            nn.Linear(input_dim, hidden), nn.ReLU(),
-            nn.Linear(hidden, bottleneck), nn.ReLU(),
-        )
-        self.decoder = nn.Sequential(
-            nn.Linear(bottleneck, hidden), nn.ReLU(),
-            nn.Linear(hidden, input_dim),
-        )
+        dims = [input_dim, hidden, bottleneck, hidden, input_dim]
+        # He init (ReLU-appropriate) for every layer, including the last —
+        # its output has no activation but this is still a sane scale.
+        self.weights = [rng.normal(0, np.sqrt(2.0 / fan_in), size=(fan_in, fan_out))
+                         for fan_in, fan_out in zip(dims[:-1], dims[1:])]
+        self.biases = [np.zeros(fan_out) for fan_out in dims[1:]]
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.decoder(self.encoder(x))
+    def _forward(self, X: np.ndarray) -> tuple[np.ndarray, list[np.ndarray], list[np.ndarray]]:
+        """Returns (output, pre_activations, activations-including-input) —
+        the latter two only matter for backprop during training."""
+        pre_acts, acts = [], [X]
+        a = X
+        last = len(self.weights) - 1
+        for i, (W, b) in enumerate(zip(self.weights, self.biases)):
+            z = a @ W + b
+            pre_acts.append(z)
+            a = z if i == last else np.maximum(z, 0)
+            acts.append(a)
+        return a, pre_acts, acts
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        output, _, _ = self._forward(X)
+        return output
 
 
 def fit_autoencoder(X_scaled: np.ndarray) -> tuple[np.ndarray, np.ndarray, _Autoencoder]:
     """Reconstruction-error anomaly score: a project whose feature vector the
     network can't compress-and-reconstruct well is unusual in how its
     features combine, not just in any one of them — the multivariate pattern
-    Isolation Forest's axis-aligned splits can miss."""
-    torch.manual_seed(RANDOM_STATE)
-    model = _Autoencoder(X_scaled.shape[1])
-    optimizer = torch.optim.Adam(model.parameters(), lr=AUTOENCODER_LR)
-    loss_fn = nn.MSELoss()
+    Isolation Forest's axis-aligned splits can miss.
 
-    X_tensor = torch.tensor(X_scaled, dtype=torch.float32)
-    model.train()
-    for _ in range(AUTOENCODER_EPOCHS):
-        optimizer.zero_grad()
-        loss = loss_fn(model(X_tensor), X_tensor)
-        loss.backward()
-        optimizer.step()
+    Trained by full-batch gradient descent (Adam) over AUTOENCODER_EPOCHS —
+    the same regime the torch version used, just with the forward/backward
+    pass and optimizer written out explicitly instead of via autograd."""
+    rng = np.random.default_rng(RANDOM_STATE)
+    model = _Autoencoder(X_scaled.shape[1], rng)
+    n_layers = len(model.weights)
+    beta1, beta2, adam_eps = 0.9, 0.999, 1e-8
+    m_w = [np.zeros_like(W) for W in model.weights]
+    v_w = [np.zeros_like(W) for W in model.weights]
+    m_b = [np.zeros_like(b) for b in model.biases]
+    v_b = [np.zeros_like(b) for b in model.biases]
 
-    model.eval()
-    with torch.no_grad():
-        reconstructed = model(X_tensor)
-        per_row_error = ((reconstructed - X_tensor) ** 2).mean(dim=1).numpy()
+    for t in range(1, AUTOENCODER_EPOCHS + 1):
+        output, pre_acts, acts = model._forward(X_scaled)
+        delta = 2 * (output - X_scaled) / output.size  # dL/d(output), MSE mean over all elements
+
+        grads_w: list[np.ndarray] = [None] * n_layers  # type: ignore[list-item]
+        grads_b: list[np.ndarray] = [None] * n_layers  # type: ignore[list-item]
+        for i in reversed(range(n_layers)):
+            if i != n_layers - 1:
+                delta = delta * (pre_acts[i] > 0)  # ReLU derivative (last layer has none)
+            grads_w[i] = acts[i].T @ delta
+            grads_b[i] = delta.sum(axis=0)
+            if i > 0:
+                delta = delta @ model.weights[i].T
+
+        for i in range(n_layers):
+            for params, grad, m, v in ((model.weights, grads_w[i], m_w, v_w), (model.biases, grads_b[i], m_b, v_b)):
+                m[i] = beta1 * m[i] + (1 - beta1) * grad
+                v[i] = beta2 * v[i] + (1 - beta2) * grad ** 2
+                m_hat = m[i] / (1 - beta1 ** t)
+                v_hat = v[i] / (1 - beta2 ** t)
+                params[i] -= AUTOENCODER_LR * m_hat / (np.sqrt(v_hat) + adam_eps)
+
+    reconstructed = model.predict(X_scaled)
+    per_row_error = ((reconstructed - X_scaled) ** 2).mean(axis=1)
 
     threshold = np.percentile(per_row_error, 100 * (1 - CONTAMINATION))
     is_outlier = per_row_error >= threshold
@@ -165,11 +200,8 @@ def isolation_forest_score_fn(model: IsolationForest):
 
 def autoencoder_score_fn(model: _Autoencoder):
     def score(X: np.ndarray) -> np.ndarray:
-        model.eval()
-        with torch.no_grad():
-            X_tensor = torch.tensor(X, dtype=torch.float32)
-            reconstructed = model(X_tensor)
-            return ((reconstructed - X_tensor) ** 2).mean(dim=1).numpy()
+        reconstructed = model.predict(X)
+        return ((reconstructed - X) ** 2).mean(axis=1)
     return score
 
 

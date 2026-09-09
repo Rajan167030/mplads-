@@ -28,7 +28,7 @@ export default async function RiskAlertsPage({
       getRiskSummary(token),
     ]);
   } catch {
-    fetchError = "Could not reach the backend API, or you need to sign in to view risk alerts.";
+    fetchError = "Something went wrong loading this page, or you need to sign in to view risk alerts.";
   }
 
   return (

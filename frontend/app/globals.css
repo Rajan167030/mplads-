@@ -226,8 +226,19 @@
 .console-signal-dot {
   animation: console-pulse 2.6s ease-out infinite;
 }
+
+/* Sign-in badge glow (components/site/login-panel.tsx) */
+@keyframes login-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(141, 252, 117, 0.38); }
+  70% { box-shadow: 0 0 0 12px rgba(141, 252, 117, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(141, 252, 117, 0); }
+}
+.login-icon-pulse {
+  animation: login-pulse 2.4s ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .console-radar-sweep, .console-signal-dot {
+  .console-radar-sweep, .console-signal-dot, .login-icon-pulse {
     animation: none;
   }
 }

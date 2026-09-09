@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { getNearbyProjects, type NearbyProjectsResult } from "@/lib/api";
+import { demoNearbyProjects, isNetworkError } from "@/lib/demo-data";
 
 const STATUS_STYLES: Record<string, string> = {
   COMPLETED: "bg-emerald-50 text-emerald-700",
@@ -39,8 +40,9 @@ export function NearMe() {
         try {
           const res = await getNearbyProjects(position.coords.latitude, position.coords.longitude, 8);
           setResult(res);
-        } catch {
-          setError("Could not reach the backend API right now — try again shortly.");
+        } catch (err) {
+          if (isNetworkError(err)) setResult(demoNearbyProjects(position.coords.latitude, position.coords.longitude, 8));
+          else setError("Something went wrong. Please try again.");
         } finally {
           setLoading(false);
         }

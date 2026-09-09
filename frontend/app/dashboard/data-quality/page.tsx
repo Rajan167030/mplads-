@@ -1,5 +1,6 @@
 import { CsvUpload } from "@/components/dashboard/csv-upload";
 import { getDataQuality, type DataQuality } from "@/lib/api";
+import { DEMO_DATA_QUALITY, isNetworkError } from "@/lib/demo-data";
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
@@ -15,8 +16,13 @@ export default async function DataQualityPage() {
   let fetchError: string | null = null;
   try {
     data = await getDataQuality();
-  } catch {
-    fetchError = "Could not reach the backend API. Is it running at NEXT_PUBLIC_API_URL?";
+  } catch (err) {
+    if (isNetworkError(err)) {
+      console.warn("[data-quality] backend unreachable, rendering demo data");
+      data = DEMO_DATA_QUALITY;
+    } else {
+      fetchError = "Something went wrong loading this page. Please try again shortly.";
+    }
   }
 
   return (

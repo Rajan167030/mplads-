@@ -1,6 +1,8 @@
-# CPU-only PyTorch wheels — the default PyPI build drags in ~2-3GB of unused
-# CUDA/nvidia-* libs on Linux; Render's free tier has no GPU anyway.
---extra-index-url https://download.pytorch.org/whl/cpu
+# Deploy build for size-constrained hosts (Render free tier, etc.).
+# Excludes sentence-transformers (and its torch/transformers/sympy transitive
+# deps, ~760MB) which only P04 entity-resolution needs. That endpoint fails
+# gracefully with a clear error on this build instead of crashing app startup —
+# see app/nlp/embeddings.py. For full local dev, use requirements.txt instead.
 
 # --- Phase 1: Foundation ---
 fastapi==0.115.6
@@ -21,16 +23,13 @@ numpy==1.26.4
 shapely==2.0.6
 
 # --- Phase 3: Entity resolution / NLP ---
-sentence-transformers==3.3.1
+# sentence-transformers deliberately omitted — see header note.
 langdetect==1.0.9
 
 # --- Phase 4-5: Rules + ML anomaly detection ---
 scikit-learn==1.6.1
 scipy==1.14.1
-shap==0.46.0  # model-agnostic (permutation) explainability across the ensemble
-# NB: torch is NOT listed here — the autoencoder detector is now pure numpy
-# (see app/ml/ensemble.py). Torch still gets installed as sentence-transformers'
-# own dependency below; dropping that too would be the next real size cut.
+shap==0.46.0
 
 # --- Phase 8: Backend APIs / auth ---
 pyjwt==2.10.1
@@ -38,7 +37,3 @@ bcrypt==4.2.1
 
 # --- AI Assistant: document upload ---
 pypdf==5.1.0
-
-# --- Testing ---
-pytest==8.3.4
-httpx==0.28.1

@@ -90,7 +90,7 @@ function useLiveSignals(initial: LiveSignal[]) {
 export function HeroPanel({ stats, initialSignals }: { stats: HeroStats | null; initialSignals: LiveSignal[] }) {
   const signals = useLiveSignals(initialSignals);
   return (
-    <section className="relative flex min-h-155 flex-col justify-between overflow-hidden bg-dashboard-navy px-6 py-10 sm:px-10 lg:min-h-0 lg:w-[58%] lg:px-14 lg:py-14">
+    <section className="relative flex min-h-155 flex-col justify-between overflow-hidden bg-dashboard-navy px-6 py-10 sm:px-10 lg:min-h-0 lg:w-1/2 lg:px-14 lg:py-14">
       <div
         className="pointer-events-none absolute inset-0"
         style={{ background: "radial-gradient(60% 55% at 78% 22%, rgba(141,252,117,0.10), transparent 70%)" }}

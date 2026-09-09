@@ -24,7 +24,7 @@ export function CsvUpload() {
       setReport(result);
       setFile(null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Upload failed. Is the backend reachable?");
+      setError(err instanceof ApiError ? err.message : "Upload failed. Please try again shortly.");
     } finally {
       setUploading(false);
     }

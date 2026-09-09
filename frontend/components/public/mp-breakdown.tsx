@@ -4,6 +4,7 @@ import { Landmark } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getFinancialsByMp, type FinancialsByMp, type FinancialsByMpResult } from "@/lib/api";
+import { demoFinancialsByMp, isNetworkError } from "@/lib/demo-data";
 
 function crore(amount: number) {
   return `₹${(amount / 10000000).toFixed(2)} Cr`;
@@ -23,8 +24,10 @@ export function MpBreakdown({ states, initial }: { states: string[]; initial: Fi
       .then((res) => {
         if (!cancelled) setResult(res);
       })
-      .catch(() => {
-        if (!cancelled) setError("Could not reach the backend API right now — try again shortly.");
+      .catch((err) => {
+        if (cancelled) return;
+        if (isNetworkError(err)) setResult(demoFinancialsByMp(state || undefined));
+        else setError("Something went wrong. Please try again.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

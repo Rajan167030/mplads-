@@ -65,7 +65,7 @@ export function ComplaintForm({ projectId, projectName }: { projectId: string; p
       });
       setResult(res);
     } catch (err) {
-      setSubmitError(err instanceof ApiError ? err.message : "Could not reach the backend API — try again shortly.");
+      setSubmitError(err instanceof ApiError ? err.message : "Something went wrong. Please try again shortly.");
     } finally {
       setSubmitting(false);
     }

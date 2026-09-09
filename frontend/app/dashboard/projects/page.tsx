@@ -47,7 +47,7 @@ export default async function ProjectsPage({
       token
     );
   } catch {
-    fetchError = "Could not reach the backend API.";
+    fetchError = "Something went wrong loading this page.";
   }
 
   return (

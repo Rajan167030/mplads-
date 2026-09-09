@@ -25,7 +25,7 @@ export default async function GeographicPage({
       getMapFilterOptions(token),
     ]);
   } catch {
-    fetchError = "Could not reach the backend API.";
+    fetchError = "Something went wrong loading this page.";
   }
 
   const hasFilters = Boolean(state || risk_band || project_type);

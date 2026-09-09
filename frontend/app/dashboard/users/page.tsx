@@ -27,7 +27,7 @@ export default function UsersPage() {
       setUsers(await listUsers(token));
       setError(null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not reach the backend API.");
+      setError(err instanceof ApiError ? err.message : "Something went wrong loading this page.");
     } finally {
       setLoading(false);
     }

@@ -13,7 +13,7 @@ export default async function FinancialsPage() {
     const token = (await cookies()).get("mplads_token")?.value;
     data = await getFinancialsSummary(token);
   } catch {
-    fetchError = "Could not reach the backend API.";
+    fetchError = "Something went wrong loading this page.";
   }
 
   return (

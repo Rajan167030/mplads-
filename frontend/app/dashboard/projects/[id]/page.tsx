@@ -153,9 +153,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               </>
             ) : (explanation?.contributing_signals?.length ?? 0) > 0 ? (
               <p className="mt-4 text-sm text-amber-700">
-                This project has {explanation!.contributing_signals.length} risk signal(s), but the narrative
-                explanation wasn&apos;t returned — the backend API is probably running an older build. Restart it to
-                pick up the latest code.
+                This project has {explanation!.contributing_signals.length} risk signal(s), but a narrative
+                explanation isn&apos;t available for it yet.
               </p>
             ) : (
               <p className="mt-4 text-sm text-dashboard-muted">No risk signals recorded for this project.</p>
