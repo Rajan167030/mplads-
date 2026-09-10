@@ -2,6 +2,7 @@ import { SiteFooter } from "@/components/site/footer";
 import { SiteHeader } from "@/components/site/header";
 import { HeroPanel, type HeroStats, type LiveSignal } from "@/components/site/hero-panel";
 import { LoginPanel } from "@/components/site/login-panel";
+import { PipelineSection } from "@/components/site/pipeline-section";
 import { getDataQuality, getFinancialsSummary, getPatternSummary, getRiskSummary } from "@/lib/api";
 import { DEMO_DATA_QUALITY, DEMO_FINANCIALS_SUMMARY, DEMO_PATTERN_SUMMARY, DEMO_RISK_SUMMARY, isNetworkError } from "@/lib/demo-data";
 
@@ -54,6 +55,7 @@ export default async function Home() {
         <HeroPanel stats={stats} initialSignals={initialSignals} />
         <LoginPanel />
       </main>
+      <PipelineSection />
       <SiteFooter />
     </div>
   );
