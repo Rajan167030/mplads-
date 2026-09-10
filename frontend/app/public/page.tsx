@@ -155,16 +155,9 @@ export default async function PublicPortalPage({
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      <div className="absolute inset-x-0 top-0 z-40 flex h-8 items-center justify-end bg-dashboard-navy/90 px-5 text-[11px] text-white/80 backdrop-blur sm:px-8 lg:px-12">
-        <span className="tracking-wide">A-</span>
-        <span className="mx-2 text-white/30">|</span>
-        <span>A</span>
-        <span className="mx-2 text-white/30">|</span>
-        <span>A+</span>
-      </div>
       <header
         id="top"
-        className="absolute inset-x-0 top-8 z-30 border-b border-white/15 bg-dashboard-navy/30 text-white shadow-lg shadow-slate-950/10 backdrop-blur-xl"
+        className="absolute inset-x-0 top-0 z-30 border-b border-white/15 bg-dashboard-navy/30 text-white shadow-lg shadow-slate-950/10 backdrop-blur-xl"
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
@@ -291,16 +284,6 @@ export default async function PublicPortalPage({
                 Find My Area
               </a>
             </div>
-          </div>
-
-          <div className="mx-auto size-48 shrink-0 overflow-hidden rounded-full sm:size-64 lg:mx-0 lg:mb-2 lg:size-80 lg:-translate-y-16">
-            <Image
-              src="/mplads-pm-portrait-transparent.png"
-              alt="Hon'ble Prime Minister of India"
-              width={384}
-              height={384}
-              className="aspect-square w-full object-cover"
-            />
           </div>
         </div>
 
