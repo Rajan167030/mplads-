@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, FileWarning, ShieldCheck } from "lucide-react";
 
 export function SiteHeader() {
   return (
@@ -18,17 +18,24 @@ export function SiteHeader() {
         </span>
         <div>
           <div className="font-display text-sm font-semibold leading-tight text-dashboard-ink">MPLADS Intelligence</div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">Intelligence Core</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">National Oversight Platform</div>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         <Link
           href="/public"
-          className="group hidden items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-xs font-medium text-dashboard-muted transition-colors hover:border-dashboard-line hover:bg-dashboard-surface hover:text-dashboard-ink sm:flex"
+          className="group inline-flex items-center gap-1.5 rounded-full border border-dashboard-line bg-dashboard-surface px-3.5 py-1.5 text-xs font-bold text-dashboard-navy transition-all hover:border-dashboard-navy/40 hover:bg-white"
         >
-          Public transparency portal
+          <span>Citizen Public Portal</span>
           <ArrowUpRight size={13} strokeWidth={2.2} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </Link>
+        <Link
+          href="/complaint"
+          className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50/80 px-3 py-1.5 text-xs font-bold text-red-700 transition-all hover:bg-red-100"
+        >
+          <FileWarning size={13} />
+          <span>Report Grievance</span>
         </Link>
         <div className="hidden items-center gap-2 rounded-full border border-dashboard-line bg-dashboard-surface px-3 py-1.5 text-xs font-medium text-dashboard-muted md:flex">
           <span className="relative flex size-1.5">

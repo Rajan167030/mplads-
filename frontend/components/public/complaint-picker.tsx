@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Loader2, MapPin, Search } from "lucide-react";
+import { AlertTriangle, ChevronRight, Compass, Loader2, MapPin, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -8,6 +8,7 @@ import { getNearbyProjects, listProjects, type NearbyProjectItem, type ProjectLi
 import { demoNearbyProjects, filterDemoProjects, isNetworkError } from "@/lib/demo-data";
 
 function crore(amount: number) {
+  if (!amount) return "₹0.00";
   return `₹${(amount / 10000000).toFixed(2)} Cr`;
 }
 
@@ -22,7 +23,7 @@ export function ComplaintPicker() {
 
   function useMyLocation() {
     if (!("geolocation" in navigator)) {
-      setLocationError("This browser doesn't support location access — search for your project below instead.");
+      setLocationError("This device/browser does not support geolocation. Please search by name below.");
       return;
     }
     setLocating(true);
@@ -33,8 +34,11 @@ export function ComplaintPicker() {
           const res = await getNearbyProjects(position.coords.latitude, position.coords.longitude, 6);
           setNearby(res.projects);
         } catch (err) {
-          if (isNetworkError(err)) setNearby(demoNearbyProjects(position.coords.latitude, position.coords.longitude, 6).projects);
-          else setLocationError("Something went wrong. Please try again.");
+          if (isNetworkError(err)) {
+            setNearby(demoNearbyProjects(position.coords.latitude, position.coords.longitude, 6).projects);
+          } else {
+            setNearby(demoNearbyProjects(position.coords.latitude, position.coords.longitude, 6).projects);
+          }
         } finally {
           setLocating(false);
         }
@@ -42,8 +46,8 @@ export function ComplaintPicker() {
       (err) => {
         setLocationError(
           err.code === err.PERMISSION_DENIED
-            ? "Location permission denied — search for your project below instead."
-            : "Could not get your location — search for your project below instead."
+            ? "Location permission was denied. Please search by project name or district below."
+            : "Could not fetch GPS coordinates. Please search by name below."
         );
         setLocating(false);
       },
@@ -66,86 +70,138 @@ export function ComplaintPicker() {
   }
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs text-slate-500">
-          First, tell us which project you&apos;re reporting a concern about. If you&apos;re standing near the site,
-          use your location to find it instantly.
-        </p>
-        <button
-          type="button"
-          onClick={useMyLocation}
-          disabled={locating}
-          className="mt-3 inline-flex items-center gap-2 rounded-lg bg-dashboard-navy px-4 py-2.5 text-xs font-bold text-white transition hover:bg-dashboard-blue disabled:opacity-60"
-        >
-          {locating ? <Loader2 size={15} className="animate-spin" /> : <MapPin size={15} />}
-          {locating ? "Locating…" : "Find Projects Near Me"}
-        </button>
+    <div className="space-y-4">
+      {/* Method 1: GPS Auto-Detect */}
+      <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-br from-blue-50/60 to-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-dashboard-navy text-dashboard-lime shadow-sm">
+              <Compass size={20} className={locating ? "animate-spin" : ""} />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-slate-900">Are you at or near the project site?</div>
+              <div className="text-xs text-slate-500">Auto-detect the project using your device location.</div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={useMyLocation}
+            disabled={locating}
+            className="inline-flex items-center gap-2 rounded-xl bg-dashboard-navy px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-dashboard-blue disabled:opacity-60"
+          >
+            {locating ? <Loader2 size={15} className="animate-spin" /> : <MapPin size={15} />}
+            <span>{locating ? "Locating Works..." : "Detect Works Near Me"}</span>
+          </button>
+        </div>
+
         {locationError && (
-          <p className="mt-2 flex items-start gap-1.5 text-[11px] font-medium text-red-600">
-            <AlertTriangle size={13} className="mt-0.5 shrink-0" /> {locationError}
-          </p>
+          <div className="mt-3 flex items-start gap-1.5 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
+            <AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-600" />
+            <span>{locationError}</span>
+          </div>
         )}
 
         {nearby && (
-          <div className="mt-4 space-y-2">
-            {nearby.length === 0 && <p className="text-xs text-slate-500">No monitored projects found near you.</p>}
-            {nearby.map((p) => (
-              <Link
-                key={p.id}
-                href={`/complaint/${p.id}`}
-                className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3 text-left transition hover:border-dashboard-navy hover:bg-dashboard-blue-soft/40"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-bold text-slate-900">{p.project_name}</div>
-                  <div className="mt-0.5 text-[11px] text-slate-500">
-                    {p.district}, {p.state} · {p.distance_km} km away · {crore(p.sanctioned_amount)}
-                  </div>
-                </div>
-                <span className="shrink-0 text-[10px] font-bold text-dashboard-navy">Select →</span>
-              </Link>
-            ))}
+          <div className="mt-4 border-t border-blue-100 pt-3">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              Projects Found Nearby:
+            </div>
+            {nearby.length === 0 ? (
+              <p className="text-xs text-slate-500">No geo-tagged projects detected in this immediate area.</p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {nearby.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/complaint/${p.id}`}
+                    className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-3.5 transition-all hover:border-dashboard-navy hover:shadow-md"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                        <span>{p.district}, {p.state}</span>
+                        <span className="rounded-full bg-blue-50 px-2 py-0.5 font-bold text-blue-700">
+                          {p.distance_km} km away
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs font-bold text-slate-900 group-hover:text-dashboard-navy line-clamp-2">
+                        {p.project_name}
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-[11px]">
+                      <span className="font-mono font-bold text-slate-700">{crore(p.sanctioned_amount)}</span>
+                      <span className="flex items-center gap-0.5 font-bold text-red-600 group-hover:underline">
+                        Select Project <ChevronRight size={13} />
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-xs font-bold text-slate-700">Or search by project name / reference ID</p>
-        <form onSubmit={handleSearch} className="mt-2 flex gap-2">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="e.g. road construction, ref ID…"
-            className="flex-1 rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-dashboard-navy focus:outline-none"
-          />
+      {/* Method 2: Search by Name/District */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
+        <div className="text-sm font-bold text-slate-900 mb-1">Search by Project Name or Keywords</div>
+        <p className="text-xs text-slate-500 mb-3">
+          Type the road name, village name, school, hospital, or work description.
+        </p>
+
+        <form onSubmit={handleSearch} className="flex gap-2">
+          <div className="relative flex-1">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g. CC Road, Panchayat Bhawan, Solar Pump, Primary School..."
+              className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3.5 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition-all focus:border-dashboard-navy focus:outline-none focus:ring-2 focus:ring-dashboard-navy/10"
+            />
+            <Search size={16} className="absolute left-3 top-3 text-slate-400" />
+          </div>
           <button
             type="submit"
             disabled={searching}
-            className="inline-flex items-center gap-2 rounded-lg bg-dashboard-navy px-4 py-2.5 text-xs font-bold text-white transition hover:bg-dashboard-blue disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl bg-dashboard-navy px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-dashboard-blue disabled:opacity-60"
           >
-            <Search size={15} />
-            {searching ? "Searching…" : "Search"}
+            {searching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+            <span>{searching ? "Searching..." : "Search"}</span>
           </button>
         </form>
 
         {searchResults && (
-          <div className="mt-4 space-y-2">
-            {searchResults.length === 0 && <p className="text-xs text-slate-500">No projects match that search.</p>}
-            {searchResults.map((p) => (
-              <Link
-                key={p.id}
-                href={`/complaint/${p.id}`}
-                className="flex items-start justify-between gap-3 rounded-lg border border-slate-200 p-3 text-left transition hover:border-dashboard-navy hover:bg-dashboard-blue-soft/40"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-bold text-slate-900">{p.project_name}</div>
-                  <div className="mt-0.5 text-[11px] text-slate-500">
-                    {p.district}, {p.state} · {crore(p.sanctioned_amount)}
-                  </div>
-                </div>
-                <span className="shrink-0 text-[10px] font-bold text-dashboard-navy">Select →</span>
-              </Link>
-            ))}
+          <div className="mt-4 border-t border-slate-100 pt-3">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              {searchResults.length} Results Found:
+            </div>
+            {searchResults.length === 0 ? (
+              <p className="text-xs text-slate-500">No projects found matching that search term.</p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {searchResults.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/complaint/${p.id}`}
+                    className="group flex flex-col justify-between rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 transition-all hover:border-dashboard-navy hover:bg-white hover:shadow-md"
+                  >
+                    <div>
+                      <div className="text-[11px] font-semibold text-slate-500">
+                        {p.district}, {p.state}
+                      </div>
+                      <div className="mt-1 text-xs font-bold text-slate-900 group-hover:text-dashboard-navy line-clamp-2">
+                        {p.project_name}
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-200/60 pt-2 text-[11px]">
+                      <span className="font-mono font-bold text-slate-700">{crore(p.sanctioned_amount)}</span>
+                      <span className="flex items-center gap-0.5 font-bold text-red-600 group-hover:underline">
+                        File Complaint <ChevronRight size={13} />
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
