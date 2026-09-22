@@ -15,6 +15,7 @@ from app.api import (
     map as map_api,
     ml,
     patterns,
+    pre_sanction,
     projects,
     reports,
     risk_scores,
@@ -33,6 +34,7 @@ api_router.include_router(risk_signals.router)
 api_router.include_router(ml.router)
 api_router.include_router(risk_scores.router)
 api_router.include_router(graph.router)
+api_router.include_router(pre_sanction.router)
 api_router.include_router(projects.router)
 api_router.include_router(contractors.router)
 api_router.include_router(patterns.router)

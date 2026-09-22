@@ -29,6 +29,7 @@ import { useMobileNav } from "@/lib/mobile-nav-context";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Pre-Sanction AI Gatekeeper", icon: ShieldCheck, href: "/dashboard/pre-sanction" },
   { label: "Risk & Alerts", icon: AlertTriangle, href: "/dashboard/risk-alerts" },
   { label: "ML Evidence & Review", icon: SearchCheck, href: "/dashboard/ml-report" },
   { label: "Projects", icon: FolderKanban, href: "/dashboard/projects" },

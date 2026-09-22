@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from geoalchemy2 import Geography
 from sqlalchemy import cast, func, or_
@@ -236,3 +238,97 @@ def get_project_timeline(
             for e in evidence
         ],
     )
+
+
+@router.get("/{project_id}/dossier")
+def get_project_dossier(
+    project_id: str,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
+):
+    """
+    Generates an official, audit-ready Statutory Forensic Case Dossier
+    for the specified project, suitable for CVC/CAG/DM administrative review.
+    """
+    project = db.get(Project, project_id)
+    if not project or (user and not in_scope(project, user)):
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    risk_signals = (
+        db.query(RiskSignal)
+        .filter(RiskSignal.project_id == project_id)
+        .order_by(RiskSignal.severity.desc())
+        .all()
+    )
+    payments = db.query(Payment).filter(Payment.project_id == project_id).all()
+    total_paid = sum(float(p.amount) for p in payments)
+    disparity = round(float(project.financial_progress) - float(project.physical_progress), 2)
+
+    # Statutory Findings & Inferred Rule Breaches
+    findings = []
+    if disparity >= 25:
+        findings.append({
+            "statutory_reference": "MPLADS Guidelines 2023, Clause 4.3 (Milestone-Linked Fund Release)",
+            "observation": f"Severe financial-to-physical progress disparity of +{disparity}%. Funds released ({project.financial_progress}%) far outpace verified ground execution ({project.physical_progress}%).",
+            "severity": "CRITICAL",
+            "risk_type": "PREMATURE_DISBURSEMENT"
+        })
+
+    for s in risk_signals:
+        findings.append({
+            "statutory_reference": "General Financial Rules (GFR 2017) & CVC Tender Guidelines",
+            "observation": s.description,
+            "severity": s.severity.value if hasattr(s.severity, "value") else str(s.severity),
+            "risk_type": s.signal_type.value if hasattr(s.signal_type, "value") else str(s.signal_type)
+        })
+
+    # Contractor Context
+    contractor_summary = None
+    if project.contractor:
+        c_projects = db.query(Project).filter(Project.contractor_id == project.contractor.id).all()
+        c_delayed = [p for p in c_projects if p.status.value == "DELAYED"]
+        contractor_summary = {
+            "name": project.contractor.name,
+            "pan": getattr(project.contractor, "pan", "NOT_PROVIDED"),
+            "gstin": getattr(project.contractor, "gstin", "NOT_PROVIDED"),
+            "total_assigned_projects": len(c_projects),
+            "delayed_projects_count": len(c_delayed),
+            "risk_score": project.contractor.risk_score or 0,
+            "cartel_warning": len(c_delayed) > 2
+        }
+
+    # Recommended Administrative Action
+    recommended_actions = []
+    if disparity >= 30:
+        recommended_actions.append("Issue immediate Stop-Payment Order to Implementing Agency pending physical inspection.")
+        recommended_actions.append("Constitute a 2-member Executive Engineer inspection panel for ground measurement verification.")
+    elif project.risk_score and project.risk_score >= 70:
+        recommended_actions.append("Direct District Planning Officer to call for technical execution records and measurement book (MB).")
+        recommended_actions.append("Cross-verify contractor work orders across adjacent assembly constituencies.")
+    else:
+        recommended_actions.append("Routine monitoring: Mandate next milestone progress geo-tagged photo upload.")
+
+    return {
+        "dossier_id": f"DOSSIER-{project.external_project_id}",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "project": {
+            "id": project.id,
+            "external_id": project.external_project_id,
+            "name": project.project_name,
+            "state": project.state,
+            "district": project.district,
+            "mp_name": project.mp_name,
+            "sector": project.project_type.value if hasattr(project.project_type, "value") else str(project.project_type),
+            "sanctioned_amount": float(project.sanctioned_amount),
+            "total_disbursed": total_paid or float(project.released_amount),
+            "physical_progress": float(project.physical_progress),
+            "financial_progress": float(project.financial_progress),
+            "progress_disparity": disparity,
+            "risk_score": project.risk_score or 0,
+            "risk_band": project.risk_band.value if project.risk_band else "LOW",
+        },
+        "contractor": contractor_summary,
+        "statutory_findings": findings,
+        "recommended_actions": recommended_actions,
+        "audit_classification": "FORMAL_INVESTIGATION_RECOMMENDED" if (project.risk_score or 0) >= 65 else "ROUTINE_AUDIT"
+    }

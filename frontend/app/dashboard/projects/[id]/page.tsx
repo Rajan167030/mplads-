@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { ApiError, explainRisk, getProject, getProjectTimeline, getRelatedProjects } from "@/lib/api";
+import { ForensicDossierButton } from "@/components/investigations/forensic-dossier-button";
 
 const SEVERITY_STYLES: Record<string, string> = {
   CRITICAL: "bg-red-50 text-red-700 border-red-200",
@@ -67,12 +68,15 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               {project.mp_name && <> · MP: {project.mp_name}</>}
             </p>
           </div>
-          {project.risk_band && project.risk_score !== null && (
-            <span className={`rounded-lg border px-4 py-2 text-center ${SEVERITY_STYLES[project.risk_band] ?? ""}`}>
-              <div className="text-2xl font-bold">{project.risk_score.toFixed(0)}</div>
-              <div className="text-[10px] font-bold uppercase tracking-wider">{project.risk_band}</div>
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            <ForensicDossierButton projectId={project.id} />
+            {project.risk_band && project.risk_score !== null && (
+              <span className={`rounded-lg border px-4 py-2 text-center ${SEVERITY_STYLES[project.risk_band] ?? ""}`}>
+                <div className="text-2xl font-bold">{project.risk_score.toFixed(0)}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider">{project.risk_band}</div>
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3 rounded-lg bg-white p-5 shadow-sm sm:grid-cols-4 lg:grid-cols-6">

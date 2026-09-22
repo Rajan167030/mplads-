@@ -891,3 +891,123 @@ export async function getComplaintPhotoUrl(token: string, id: string): Promise<s
   const blob = await res.blob();
   return URL.createObjectURL(blob);
 }
+
+// ---------------------------------------------------------------------------
+// Pre-Sanction AI Gatekeeper & Dossier Intelligence
+// ---------------------------------------------------------------------------
+
+export interface PreSanctionPayload {
+  project_name: string;
+  description?: string;
+  project_type: string;
+  state: string;
+  district: string;
+  estimated_cost: number;
+  latitude?: number;
+  longitude?: number;
+  target_beneficiary?: string;
+  implementing_agency?: string;
+}
+
+export interface PreSanctionResult {
+  clearance_status: "APPROVED_FOR_SANCTION" | "CONDITIONAL_REVIEW_REQUIRED" | "REJECT_PROHIBITED";
+  clearance_color: "green" | "amber" | "red";
+  clearance_token: string;
+  recommendation: string;
+  guideline_checks: Array<{
+    check: string;
+    status: "PASS" | "FAIL" | "WARN";
+    details: string;
+  }>;
+  violations: Array<{
+    rule: string;
+    clause: string;
+    matched_terms?: string[];
+    conflicts?: any[];
+    severity: string;
+    explanation: string;
+  }>;
+  warnings: Array<{
+    type: string;
+    message: string;
+    variance?: number;
+    distance_meters?: number;
+  }>;
+  proximity_conflicts: Array<{
+    existing_project_id: string;
+    existing_project_name: string;
+    status: string;
+    sanctioned_amount: number;
+    distance_km?: number;
+    similarity_score: number;
+    reason: string;
+  }>;
+  cost_analysis: {
+    proposed_cost: number;
+    district_historical_avg: number;
+    sector_standard_range: { min: number; max: number };
+    cost_variance_ratio: number;
+    status: string;
+  };
+  target_beneficiary: string;
+  summary: {
+    project_name: string;
+    district: string;
+    state: string;
+    estimated_cost: number;
+    total_flags: number;
+  };
+}
+
+export function validatePreSanctionProposal(payload: PreSanctionPayload, token?: string) {
+  return maybeAuthRequest<PreSanctionResult>("/pre-sanction/validate", token, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getPreSanctionGuidelines(token?: string) {
+  return maybeAuthRequest<any>("/pre-sanction/guidelines", token);
+}
+
+export interface ProjectDossier {
+  dossier_id: string;
+  generated_at: string;
+  project: {
+    id: string;
+    external_id: string;
+    name: string;
+    state: string;
+    district: string;
+    mp_name?: string;
+    sector: string;
+    sanctioned_amount: number;
+    total_disbursed: number;
+    physical_progress: number;
+    financial_progress: number;
+    progress_disparity: number;
+    risk_score: number;
+    risk_band: string;
+  };
+  contractor?: {
+    name: string;
+    pan: string;
+    gstin: string;
+    total_assigned_projects: number;
+    delayed_projects_count: number;
+    risk_score: number;
+    cartel_warning: boolean;
+  };
+  statutory_findings: Array<{
+    statutory_reference: string;
+    observation: string;
+    severity: string;
+    risk_type: string;
+  }>;
+  recommended_actions: string[];
+  audit_classification: string;
+}
+
+export function getProjectDossier(projectId: string, token?: string) {
+  return maybeAuthRequest<ProjectDossier>(`/projects/${projectId}/dossier`, token);
+}
