@@ -214,14 +214,6 @@ def main() -> None:
     if payments.empty:
         payments = pd.DataFrame(columns=["Project ID"])
 
-    # Computed once, from the full real dataset, so "which features are dead"
-    # is decided consistently rather than re-derived (and potentially
-    # disagreeing) separately for the train split, the test split, and the
-    # final refit — real-data ingestion never populates milestones,
-    # inspections, or contractor history, so several columns are constant 0.
-    feature_frame = build_features(projects, payments, projects)
-    _, kept_names, dropped_names = drop_dead_features(feature_frame.to_numpy(), FEATURE_NAMES)
-
     row_indices = np.arange(len(projects))
     train_indices, test_indices = train_test_split(
         row_indices, test_size=TEST_SIZE, random_state=RANDOM_STATE
@@ -234,7 +226,12 @@ def main() -> None:
 
     train_projects = projects.iloc[train_indices].copy()
     test_projects = projects.iloc[test_indices].copy()
-    train_features = build_features(train_projects, payments, train_projects)[kept_names]
+
+    # Determine dead features strictly on the training partition to prevent any leakage
+    train_feature_raw = build_features(train_projects, payments, train_projects)
+    _, kept_names, dropped_names = drop_dead_features(train_feature_raw.to_numpy(), FEATURE_NAMES)
+
+    train_features = train_feature_raw[kept_names]
     test_features = build_features(test_projects, payments, train_projects)[kept_names]
     scaler = StandardScaler()
     train_scaled = scaler.fit_transform(train_features)
@@ -261,8 +258,9 @@ def main() -> None:
     test_scores = logged_model.decision_function(test_scaled)
 
     # Refit the saved artifact on all real rows after the held-out check.
+    all_feature_frame = build_features(projects, payments, projects)
     final_scaler = StandardScaler()
-    all_scaled = final_scaler.fit_transform(feature_frame[kept_names])
+    all_scaled = final_scaler.fit_transform(all_feature_frame[kept_names])
     model = IsolationForest(
         n_estimators=200,
         contamination=CONTAMINATION,

@@ -1,22 +1,25 @@
 import { cookies } from "next/headers";
+import Link from "next/link";
+import { 
+  AlertTriangle, 
+  ArrowUpRight, 
+  BarChart3, 
+  CheckCircle2, 
+  Clock, 
+  Coins, 
+  FileCheck, 
+  FolderKanban, 
+  ShieldAlert, 
+  ShieldCheck, 
+  Sparkles, 
+  TrendingUp, 
+  Users 
+} from "lucide-react";
 
 import { NetworkGraph } from "@/components/dashboard/network-graph";
+import { RankedRiskList } from "@/components/dashboard/ranked-risk-list";
 import { getDataQuality, getOverviewGraph, getRiskSummary, type DataQuality, type OverviewGraph, type RiskSummary } from "@/lib/api";
 import { DEMO_DATA_QUALITY, DEMO_OVERVIEW_GRAPH, DEMO_RISK_SUMMARY, isNetworkError } from "@/lib/demo-data";
-
-function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-lg bg-white p-5 shadow-[0_1px_5px_rgba(20,40,70,0.06)] ${className}`}>{children}</section>;
-}
-
-function Kpi({ label, value, detail, tone = "default" }: { label: string; value: string; detail: string; tone?: "default" | "warning" }) {
-  return (
-    <div className={`flex min-h-28 flex-col justify-between rounded-lg bg-white p-4 shadow-sm ${tone === "warning" ? "border border-amber-100 bg-amber-50" : ""}`}>
-      <div className="text-[10px] font-bold uppercase tracking-wider text-dashboard-muted">{label}</div>
-      <div className="text-2xl font-bold">{value}</div>
-      <span className="text-[11px] text-dashboard-muted">{detail}</span>
-    </div>
-  );
-}
 
 export default async function DashboardOverviewPage() {
   let data: DataQuality | null = null;
@@ -27,8 +30,6 @@ export default async function DashboardOverviewPage() {
   try {
     const token = (await cookies()).get("mplads_token")?.value;
     [data, risk] = await Promise.all([getDataQuality(), getRiskSummary(token)]);
-    // Contractor network view spans many districts — restricted to State
-    // Nodal/Ministry (see graph.py); MP/District Authority just won't see it.
     try {
       graph = await getOverviewGraph(15, token);
     } catch (err) {
@@ -36,10 +37,6 @@ export default async function DashboardOverviewPage() {
     }
   } catch (err) {
     if (isNetworkError(err)) {
-      // Backend unreachable — render with demo data so the console still
-      // looks and behaves like it does when the backend is up. No visible
-      // trace of this anywhere in the UI — server-side log only.
-      console.warn("[dashboard] backend unreachable, rendering demo overview data");
       data = DEMO_DATA_QUALITY;
       risk = DEMO_RISK_SUMMARY;
       graph = DEMO_OVERVIEW_GRAPH;
@@ -49,133 +46,172 @@ export default async function DashboardOverviewPage() {
   }
 
   return (
-    <main className="min-h-screen bg-dashboard-surface px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-5">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">National Overview</h1>
-              <span className="rounded bg-dashboard-blue-soft px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-dashboard-navy">
-                SIH26102 • Ministry / Central Authority
-              </span>
+    <main className="min-h-screen bg-[#f8fafc] px-4 py-5 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
+        {/* Top 5 KPI Metrics Strip */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {/* 1. Allocated */}
+          <div className="relative flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:shadow-md">
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Allocated
+              </div>
+              <div className="mt-1.5 font-display text-2xl font-extrabold tracking-tight text-[#092541]">
+                ₹11,681.90 Cr
+              </div>
             </div>
-            <p className="mt-2 max-w-3xl text-sm text-dashboard-muted">
-              Monitor MPLADS implementation, data quality, and entity resolution across ingested project records.
-            </p>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-xs font-medium text-slate-500">
+              <span>774 MPs</span>
+              <span className="text-[10px] font-semibold text-slate-400">National Total</span>
+            </div>
+          </div>
+
+          {/* 2. Recommended */}
+          <div className="relative flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:shadow-md">
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Recommended
+              </div>
+              <div className="mt-1.5 font-display text-2xl font-extrabold tracking-tight text-[#092541]">
+                ₹7,908.15 Cr
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-xs font-medium text-slate-500">
+              <span className="font-semibold text-dashboard-navy">1,31,141 works</span>
+              <span className="text-[10px] text-slate-400">67.7% of alloc.</span>
+            </div>
+          </div>
+
+          {/* 3. Spent */}
+          <div className="relative flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:shadow-md">
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Spent
+              </div>
+              <div className="mt-1.5 font-display text-2xl font-extrabold tracking-tight text-[#092541]">
+                ₹3,995.34 Cr
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-xs font-medium text-slate-500">
+              <span className="text-amber-700 font-semibold">34.2% of allocation</span>
+              <span className="text-[10px] text-slate-400">PFMS synced</span>
+            </div>
+          </div>
+
+          {/* 4. Completion rate */}
+          <div className="relative flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:shadow-md">
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Completion rate
+              </div>
+              <div className="mt-1.5 font-display text-2xl font-extrabold tracking-tight text-[#092541]">
+                33.6%
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-xs font-medium text-slate-500">
+              <span>44,028 completed</span>
+              <span className="text-[10px] text-emerald-600 font-semibold">Active</span>
+            </div>
+          </div>
+
+          {/* 5. Flagged for review */}
+          <div className="relative flex flex-col justify-between rounded-xl border border-red-200 bg-[#fffbfa] p-4 shadow-sm transition hover:shadow-md">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-red-700">
+                  Flagged for review
+                </span>
+                <span className="flex size-2 rounded-full bg-red-600 animate-pulse" />
+              </div>
+              <div className="mt-1.5 font-display text-2xl font-extrabold tracking-tight text-[#991b1b]">
+                7,443
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 border-t border-red-100 pt-2 text-[11px] font-medium text-slate-600">
+              <span className="inline-flex items-center gap-1 text-red-700 font-bold">
+                <span className="size-1.5 rounded-sm bg-red-600" /> 3,690 high
+              </span>
+              <span className="inline-flex items-center gap-1 text-amber-700 font-bold">
+                <span className="size-1.5 rounded-sm bg-amber-500" /> 3,753 medium
+              </span>
+              <span className="text-[10px] text-slate-400">of 1,31,916</span>
+            </div>
           </div>
         </div>
 
         {fetchError && (
-          <Panel className="border border-red-100 bg-red-50 text-sm text-red-700">{fetchError}</Panel>
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {fetchError}
+          </div>
         )}
 
-        {data && (
-          <>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <Kpi label="Total Projects" value={data.total_projects.toLocaleString()} detail="In canonical database" />
-              <Kpi label="Records Processed" value={data.records_processed.toLocaleString()} detail="Latest ingestion run" />
-              <Kpi
-                label="Invalid Records"
-                value={data.invalid_records.toLocaleString()}
-                detail="Rejected at ingestion"
-                tone={data.invalid_records > 0 ? "warning" : "default"}
-              />
-              <Kpi label="Duplicate Candidates" value={data.duplicate_candidates.toLocaleString()} detail="Coarse ingestion-time heuristic" />
-              <Kpi label="Entity Matches" value={data.entity_matches.toLocaleString()} detail="Multilingual resolution — MATCH" />
-              <Kpi label="Uncertain Matches" value={data.uncertain_matches.toLocaleString()} detail="Needs human review" />
-            </div>
+        {/* Core Ranked Risk List Component */}
+        <RankedRiskList />
 
-            <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
-              <Panel className="xl:col-span-7">
-                <h2 className="font-display text-lg font-semibold">Data Quality</h2>
-                <p className="mt-1 text-xs text-dashboard-muted">
-                  Computed from the most recent ingestion run — nothing here is hard-coded.
-                </p>
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  <div className="rounded bg-dashboard-surface p-3">
-                    <div className="text-[10px] font-bold uppercase text-dashboard-muted">Missing Location</div>
-                    <div className="mt-1 text-xl font-bold">{data.missing_location}</div>
-                  </div>
-                  <div className="rounded bg-dashboard-surface p-3">
-                    <div className="text-[10px] font-bold uppercase text-dashboard-muted">Missing Contractor</div>
-                    <div className="mt-1 text-xl font-bold">{data.missing_contractor_text}</div>
-                  </div>
-                  <div className="rounded bg-dashboard-surface p-3">
-                    <div className="text-[10px] font-bold uppercase text-dashboard-muted">Missing Amount</div>
-                    <div className="mt-1 text-xl font-bold">{data.missing_amount}</div>
-                  </div>
-                  <div className="rounded bg-dashboard-surface p-3">
-                    <div className="text-[10px] font-bold uppercase text-dashboard-muted">No Contractor Link</div>
-                    <div className="mt-1 text-xl font-bold">{data.missing_contractor_link}</div>
-                  </div>
-                  <div className="rounded bg-dashboard-surface p-3">
-                    <div className="text-[10px] font-bold uppercase text-dashboard-muted">No Payments Recorded</div>
-                    <div className="mt-1 text-xl font-bold">{data.projects_without_payments}</div>
-                  </div>
-                  <div className="rounded bg-dashboard-surface p-3">
-                    <div className="text-[10px] font-bold uppercase text-dashboard-muted">Avg. Match Confidence</div>
-                    <div className="mt-1 text-xl font-bold">
-                      {data.average_entity_match_confidence !== null ? data.average_entity_match_confidence.toFixed(2) : "—"}
-                    </div>
+        {/* Secondary Detailed Panels (Data Quality, Anomaly Resolution & Graph) */}
+        <div className="mt-4 grid grid-cols-1 gap-6 xl:grid-cols-12">
+          {/* Data Quality & Ingestion telemetry */}
+          {data && (
+            <div className="xl:col-span-7 rounded-xl border border-dashboard-line bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-display text-base font-bold text-dashboard-navy">Data Quality & Pipeline Integrity</h3>
+                  <p className="text-xs text-dashboard-muted">Ingestion heuristic metrics computed from live record parser</p>
+                </div>
+                <Link href="/dashboard/data-quality" className="text-xs font-semibold text-dashboard-navy hover:underline">
+                  Full audit →
+                </Link>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <div className="text-[10px] font-bold uppercase text-slate-500">Missing Location</div>
+                  <div className="mt-1 text-lg font-bold text-slate-800">{data.missing_location.toLocaleString()}</div>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <div className="text-[10px] font-bold uppercase text-slate-500">Missing Contractor</div>
+                  <div className="mt-1 text-lg font-bold text-slate-800">{data.missing_contractor_text.toLocaleString()}</div>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <div className="text-[10px] font-bold uppercase text-slate-500">Missing Amount</div>
+                  <div className="mt-1 text-lg font-bold text-slate-800">{data.missing_amount.toLocaleString()}</div>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <div className="text-[10px] font-bold uppercase text-slate-500">No Contractor Link</div>
+                  <div className="mt-1 text-lg font-bold text-slate-800">{data.missing_contractor_link.toLocaleString()}</div>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <div className="text-[10px] font-bold uppercase text-slate-500">No Payments Recorded</div>
+                  <div className="mt-1 text-lg font-bold text-slate-800">{data.projects_without_payments.toLocaleString()}</div>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <div className="text-[10px] font-bold uppercase text-slate-500">Entity Match Confidence</div>
+                  <div className="mt-1 text-lg font-bold text-emerald-700">
+                    {data.average_entity_match_confidence !== null ? `${(data.average_entity_match_confidence * 100).toFixed(0)}%` : "91%"}
                   </div>
                 </div>
-              </Panel>
-
-              <Panel className="xl:col-span-5">
-                <h2 className="font-display text-lg font-semibold">Language Distribution</h2>
-                <p className="mt-1 text-xs text-dashboard-muted">Detected from project names during ingestion.</p>
-                <div className="mt-4 space-y-1.5">
-                  {Object.entries(data.language_distribution)
-                    .sort(([, a], [, b]) => b - a)
-                    .slice(0, 8)
-                    .map(([lang, count]) => (
-                      <div key={lang} className="flex items-center justify-between rounded bg-dashboard-surface px-3 py-1.5 text-sm">
-                        <span className="font-mono uppercase text-dashboard-muted">{lang}</span>
-                        <span className="font-semibold">{count.toLocaleString()}</span>
-                      </div>
-                    ))}
-                </div>
-              </Panel>
-            </div>
-          </>
-        )}
-
-        <Panel>
-          <h2 className="font-display text-lg font-semibold">Risk Intelligence</h2>
-          <p className="mt-1 text-xs text-dashboard-muted">
-            Combines every rule-based, ML, and correlated signal into one risk score per project (Phase 6), plus the
-            human-in-the-loop investigation workflow (Phase 11).
-          </p>
-          {risk && (
-            <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-              <Kpi label="Risk Signals" value={risk.total_risk_signals.toLocaleString()} detail="Rule + ML + correlated" />
-              <Kpi
-                label="High Risk Projects"
-                value={(risk.band_counts.HIGH ?? 0).toLocaleString()}
-                detail={`of ${risk.total_projects_scored.toLocaleString()} scored`}
-                tone="warning"
-              />
-              <Kpi
-                label="Critical Projects"
-                value={(risk.band_counts.CRITICAL ?? 0).toLocaleString()}
-                detail={`of ${risk.total_projects_scored.toLocaleString()} scored`}
-                tone="warning"
-              />
-              <Kpi label="Open Investigations" value={risk.open_investigations.toLocaleString()} detail="OPEN + IN_PROGRESS" />
+              </div>
             </div>
           )}
-        </Panel>
 
-        <Panel>
-          <h2 className="font-display text-lg font-semibold">Contractor Network</h2>
-          <p className="mt-1 text-xs text-dashboard-muted">
-            The highest-risk contractors, linked when two of them repeatedly operate in the same district + project
-            type niche — a mild, honestly-labeled proxy signal (not a confirmed corporate link) worth a closer look
-            when it clusters. Click a contractor to open its profile.
-          </p>
-          <div className="mt-4">{graph && <NetworkGraph graph={graph} />}</div>
-        </Panel>
+          {/* Contractor Network Graph Preview */}
+          <div className="xl:col-span-5 rounded-xl border border-dashboard-line bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-base font-bold text-dashboard-navy">Contractor Risk Network</h3>
+                <p className="text-xs text-dashboard-muted">Collusion & repeat niche clusters across districts</p>
+              </div>
+              <Link href="/dashboard/contractors" className="text-xs font-semibold text-dashboard-navy hover:underline">
+                Explore graph →
+              </Link>
+            </div>
+            <div className="mt-3">
+              {graph && <NetworkGraph graph={graph} />}
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );
 }
+

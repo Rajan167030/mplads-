@@ -20,8 +20,8 @@ export function LoginPanel() {
   const router = useRouter();
   const { login } = useAuth();
   const [selectedRole, setSelectedRole] = useState<(typeof roles)[number]["id"]>("ministry");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("ministry_demo@mplads.gov.in");
+  const [password, setPassword] = useState(DEMO_PASSWORD);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 

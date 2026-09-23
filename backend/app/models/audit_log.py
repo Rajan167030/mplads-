@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import JSON, DateTime, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
 from app.models.base import UUIDPKMixin
@@ -18,3 +18,6 @@ class AuditLog(UUIDPKMixin, Base):
     entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     action_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    user: Mapped["User | None"] = relationship("User", foreign_keys=[user_id], lazy="select")
+

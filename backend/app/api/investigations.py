@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta, timezone
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.audit import log_audit_event
 from app.core.db import get_db
 from app.core.deps import get_current_user, require_role
 from app.core.scope import in_scope, scope_filter
+from app.models.audit_log import AuditLog
 from app.models.enums import (
     EscalationLevel,
     InvestigationResolution,
@@ -166,3 +168,40 @@ def escalate_investigation(
         {"new_level": investigation.current_level.value},
     )
     return _out(investigation)
+
+
+@router.get("/{investigation_id}/audit-log")
+def get_investigation_audit_log(
+    investigation_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[dict]:
+    """Returns the full chronological audit trail for a specific investigation case."""
+    investigation = db.get(Investigation, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    logs = (
+        db.query(AuditLog)
+        .options(joinedload(AuditLog.user))
+        .filter(
+            AuditLog.entity_type == "Investigation",
+            AuditLog.entity_id == uuid.UUID(investigation_id),
+        )
+        .order_by(AuditLog.timestamp.asc())
+        .limit(200)
+        .all()
+    )
+
+    return [
+        {
+            "id": str(log.id),
+            "action": log.action,
+            "timestamp": log.timestamp.isoformat(),
+            "user_name": log.user.full_name if hasattr(log, "user") and log.user else "System",
+            "user_role": log.user.role.value if hasattr(log, "user") and log.user else None,
+            "metadata": log.action_metadata or {},
+        }
+        for log in logs
+    ]
+

@@ -1011,3 +1011,88 @@ export interface ProjectDossier {
 export function getProjectDossier(projectId: string, token?: string) {
   return maybeAuthRequest<ProjectDossier>(`/projects/${projectId}/dossier`, token);
 }
+
+export interface ProjectSummaryForMatch {
+  id: string;
+  external_project_id: string;
+  project_name: string;
+  description?: string | null;
+  project_type: string;
+  state: string;
+  district: string;
+  constituency?: string | null;
+  mp_name?: string | null;
+  sanctioned_amount: number;
+  released_amount: number;
+  expenditure_amount: number;
+  start_date: string;
+  expected_completion_date: string;
+  actual_completion_date?: string | null;
+  physical_progress: number;
+  financial_progress: number;
+  status: string;
+  contractor_name?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  risk_score?: number | null;
+  risk_band?: string | null;
+}
+
+export interface MatchDifferenceMetrics {
+  amount_diff_inr: number;
+  amount_diff_pct: number;
+  days_between_sanction: number;
+  same_contractor: boolean;
+  same_mp: boolean;
+  distance_km?: number | null;
+}
+
+export interface EntityMatchEnriched {
+  id: string;
+  source_project_id: string;
+  matched_project_id: string;
+  match_confidence: number;
+  verdict: string;
+  matching_features: {
+    text_similarity?: number;
+    phonetic_similarity?: number;
+    location_similarity?: number;
+    type_similarity?: number;
+    contractor_similarity?: number;
+    date_similarity?: number;
+    amount_similarity?: number;
+    [key: string]: any;
+  };
+  created_at: string;
+  source_project: ProjectSummaryForMatch;
+  matched_project: ProjectSummaryForMatch;
+  diff_metrics: MatchDifferenceMetrics;
+}
+
+export function getEnrichedEntityMatches(params?: { verdict?: string; limit?: number; offset?: number }, token?: string) {
+  const query = new URLSearchParams();
+  if (params?.verdict) query.set("verdict", params.verdict);
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.offset) query.set("offset", String(params.offset));
+  const qs = query.toString();
+  return maybeAuthRequest<EntityMatchEnriched[]>(`/entity-resolution/matches/enriched${qs ? `?${qs}` : ""}`, token);
+}
+
+export function getEnrichedEntityMatch(matchId: string, token?: string) {
+  return maybeAuthRequest<EntityMatchEnriched>(`/entity-resolution/matches/${matchId}/enriched`, token);
+}
+
+// --- Investigation Audit Log ---
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  timestamp: string;
+  user_name: string;
+  user_role: string | null;
+  metadata: Record<string, unknown>;
+}
+
+export function getInvestigationAuditLog(investigationId: string, token: string) {
+  return authRequest<AuditLogEntry[]>(`/investigations/${investigationId}/audit-log`, token);
+}

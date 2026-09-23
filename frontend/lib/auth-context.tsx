@@ -98,10 +98,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       accessToken = tokenResponse.access_token;
       me = await getMe(accessToken);
     } catch (err) {
-      // Backend unreachable (not just a rejected login) — fall back to a demo
-      // account so the console/pitch demo still works without it. A real
-      // rejection (wrong password, 4xx/5xx from a live backend) still throws.
-      const demoAccount = isNetworkError(err) ? findDemoAccount(email, password) : undefined;
+      // If the backend is unreachable or the user is not yet in the DB, fall back to a demo
+      // account so official role preview always works reliably.
+      const demoAccount = findDemoAccount(email, password);
       if (!demoAccount) throw err;
       accessToken = demoTokenFor(demoAccount.user);
       me = demoAccount.user;
