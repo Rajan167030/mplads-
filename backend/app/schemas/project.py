@@ -12,6 +12,8 @@ class ProjectListItem(BaseModel):
     project_type: str
     state: str
     district: str
+    constituency: str | None = None
+    mp_name: str | None = None
     status: str
     sanctioned_amount: float
     physical_progress: float

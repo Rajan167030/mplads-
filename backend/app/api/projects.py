@@ -83,6 +83,8 @@ def list_projects(
             project_type=p.project_type.value,
             state=p.state,
             district=p.district,
+            constituency=p.constituency,
+            mp_name=p.mp_name,
             status=p.status.value,
             sanctioned_amount=float(p.sanctioned_amount),
             physical_progress=p.physical_progress,

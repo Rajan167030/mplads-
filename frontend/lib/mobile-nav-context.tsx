@@ -3,18 +3,61 @@
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 
-const MobileNavContext = createContext<{ open: boolean; toggle: () => void; close: () => void } | null>(null);
+interface NavContextType {
+  open: boolean;
+  toggle: () => void;
+  close: () => void;
+  isCollapsed: boolean;
+  toggleCollapse: () => void;
+  setCollapsed: (v: boolean) => void;
+}
+
+const MobileNavContext = createContext<NavContextType | null>(null);
 
 export function MobileNavProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
 
-  // Close automatically whenever the route changes, so picking a nav item
-  // doesn't leave the overlay sidebar open on top of the new page.
+  // Load persisted collapse state on client mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("mplads_sidebar_collapsed");
+      if (saved === "true") setIsCollapsed(true);
+    } catch {}
+  }, []);
+
+  // Close mobile drawer on route change
   useEffect(() => setOpen(false), [pathname]);
 
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("mplads_sidebar_collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const setCollapsed = (val: boolean) => {
+    setIsCollapsed(val);
+    try {
+      localStorage.setItem("mplads_sidebar_collapsed", String(val));
+    } catch {}
+  };
+
   return (
-    <MobileNavContext.Provider value={{ open, toggle: () => setOpen((v) => !v), close: () => setOpen(false) }}>
+    <MobileNavContext.Provider
+      value={{
+        open,
+        toggle: () => setOpen((v) => !v),
+        close: () => setOpen(false),
+        isCollapsed,
+        toggleCollapse,
+        setCollapsed,
+      }}
+    >
       {children}
     </MobileNavContext.Provider>
   );

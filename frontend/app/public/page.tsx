@@ -800,7 +800,7 @@ export default async function PublicPortalPage({
             </p>
           </div>
 
-          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2 sm:p-3">
+          <div className="mt-6">
             {heatmapData && (
               <PublicHeatmap
                 initialData={heatmapData}

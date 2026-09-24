@@ -1,7 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ShieldCheck } from "lucide-react";
+import { 
+  CheckCircle2, 
+  Menu, 
+  PanelLeftClose, 
+  PanelLeftOpen, 
+  ShieldCheck, 
+  SidebarClose, 
+  SidebarOpen 
+} from "lucide-react";
 
 import { useAuth } from "@/lib/auth-context";
 import { useMobileNav } from "@/lib/mobile-nav-context";
@@ -9,18 +17,34 @@ import { useMobileNav } from "@/lib/mobile-nav-context";
 export function DashboardHeader() {
   const router = useRouter();
   const { user, loading, logout } = useAuth();
-  const { toggle } = useMobileNav();
+  const { toggle, isCollapsed, toggleCollapse } = useMobileNav();
 
   return (
     <header className="sticky top-0 z-20 flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-dashboard-line bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur sm:px-6 lg:px-8">
       <div className="flex items-center gap-2.5">
+        {/* Mobile menu toggle */}
         <button
           onClick={toggle}
-          className="mr-1 grid size-8 place-items-center rounded border border-dashboard-line text-dashboard-ink lg:hidden"
-          aria-label="Toggle navigation menu"
+          className="mr-1 grid size-8 place-items-center rounded-lg border border-dashboard-line text-dashboard-ink hover:bg-slate-100 transition lg:hidden"
+          aria-label="Toggle navigation drawer"
         >
-          ☰
+          <Menu size={18} />
         </button>
+
+        {/* Desktop Sidebar Minimize / Expand Toggle Button */}
+        <button
+          onClick={toggleCollapse}
+          className="hidden lg:grid size-8 place-items-center rounded-lg border border-dashboard-line text-slate-600 hover:bg-slate-100 hover:text-dashboard-navy transition-all"
+          title={isCollapsed ? "Expand sidebar" : "Minimize sidebar"}
+          aria-label={isCollapsed ? "Expand sidebar" : "Minimize sidebar"}
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen size={18} className="text-dashboard-navy" />
+          ) : (
+            <PanelLeftClose size={18} />
+          )}
+        </button>
+
         <div>
           <div className="flex items-center gap-2">
             <span className="font-display text-sm font-bold text-[#092541] sm:text-base">

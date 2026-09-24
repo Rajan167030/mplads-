@@ -189,6 +189,8 @@ export interface ProjectListItem {
   project_type: string;
   state: string;
   district: string;
+  constituency?: string | null;
+  mp_name?: string | null;
   status: string;
   sanctioned_amount: number;
   physical_progress: number;
@@ -211,6 +213,7 @@ export interface ProjectFilters {
   project_type?: string;
   status?: string;
   risk_band?: string;
+  min_risk_score?: number;
   search?: string;
   sort_by?: "risk_score" | "sanctioned_amount" | "start_date";
   limit?: number;
