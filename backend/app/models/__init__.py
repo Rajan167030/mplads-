@@ -11,6 +11,7 @@ from app.models.investigation import Investigation
 from app.models.milestone import Milestone
 from app.models.payment import Payment
 from app.models.project import Project
+from app.models.review import InvestigationReview
 from app.models.risk_signal import RiskSignal
 from app.models.user import User
 
@@ -25,9 +26,11 @@ __all__ = [
     "IngestionReport",
     "Inspection",
     "Investigation",
+    "InvestigationReview",
     "Milestone",
     "Payment",
     "Project",
     "RiskSignal",
     "User",
 ]
+

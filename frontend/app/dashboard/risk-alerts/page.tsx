@@ -27,8 +27,8 @@ export default async function RiskAlertsPage({
       getTopRiskProjects({ band, limit: 50 }, token),
       getRiskSummary(token),
     ]);
-  } catch {
-    fetchError = "Something went wrong loading this page, or you need to sign in to view risk alerts.";
+  } catch (err) {
+    fetchError = `Something went wrong loading risk alerts: ${err instanceof Error ? err.message : String(err)}`;
   }
 
   return (
@@ -61,25 +61,26 @@ export default async function RiskAlertsPage({
         )}
 
         {projects && (
-          <div className="mt-5 overflow-x-auto rounded-lg bg-white shadow-sm">
-            <table className="w-full min-w-[800px] text-sm">
+          <div className="mt-5 overflow-x-auto rounded-lg bg-white shadow-sm border border-dashboard-line">
+            <table className="w-full min-w-[850px] text-sm">
               <thead>
-                <tr className="border-b border-dashboard-line text-left text-[10px] font-bold uppercase tracking-wider text-dashboard-muted">
+                <tr className="border-b border-dashboard-line text-left text-[10px] font-bold uppercase tracking-wider text-dashboard-muted bg-dashboard-surface/40">
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Location</th>
                   <th className="px-4 py-3">Type</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Risk</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {projects.map((p) => (
-                  <tr key={p.id} className="border-b border-dashboard-line/60 last:border-0 hover:bg-dashboard-surface">
+                  <tr key={p.id} className="border-b border-dashboard-line/60 last:border-0 hover:bg-dashboard-surface/60 transition">
                     <td className="px-4 py-3">
-                      <Link href={`/dashboard/projects/${p.id}`} className="font-semibold text-dashboard-navy hover:underline">
+                      <Link href={`/dashboard/projects/${p.id}`} className="font-semibold text-dashboard-navy hover:underline block max-w-md truncate" title={p.project_name}>
                         {p.project_name}
                       </Link>
-                      <div className="text-[11px] text-dashboard-muted">{p.external_project_id}</div>
+                      <div className="text-[11px] text-dashboard-muted font-mono">{p.external_project_id}</div>
                     </td>
                     <td className="px-4 py-3 text-dashboard-muted">
                       {p.district}, {p.state}
@@ -92,6 +93,15 @@ export default async function RiskAlertsPage({
                           {p.risk_band} · {p.risk_score?.toFixed(0)}
                         </span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/dashboard/projects/${p.id}`}
+                        className="inline-flex items-center gap-1 rounded-md border border-dashboard-navy/30 bg-white px-2.5 py-1 text-xs font-semibold text-dashboard-navy hover:bg-dashboard-navy hover:text-white transition shadow-2xs"
+                      >
+                        <span>View Project</span>
+                        <span className="text-xs">→</span>
+                      </Link>
                     </td>
                   </tr>
                 ))}

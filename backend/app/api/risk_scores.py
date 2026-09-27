@@ -82,9 +82,11 @@ def top_risk_projects(
     limit: int = Query(default=50, le=500),
     offset: int = 0,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User | None = Depends(get_current_user_optional),
 ) -> list[ProjectRiskSummary]:
-    query = scope_filter(db.query(Project), user).filter(Project.risk_score.isnot(None))
+    query = db.query(Project).filter(Project.risk_score.isnot(None))
+    if user:
+        query = scope_filter(query, user)
     if band:
         query = query.filter(Project.risk_band == band.upper())
     projects = query.order_by(Project.risk_score.desc()).offset(offset).limit(limit).all()
@@ -95,10 +97,10 @@ def top_risk_projects(
 def explain_risk_score(
     project_id: str,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User | None = Depends(get_current_user_optional),
 ) -> RiskExplanationOut:
     project = db.get(Project, project_id)
-    if not project or not in_scope(project, user):
+    if not project or (user and not in_scope(project, user)):
         raise HTTPException(status_code=404, detail="Project not found")
 
     signals = db.query(RiskSignal).filter(RiskSignal.project_id == project_id).all()

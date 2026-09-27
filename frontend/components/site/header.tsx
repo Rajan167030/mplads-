@@ -1,48 +1,46 @@
 import Link from "next/link";
-import { ArrowUpRight, FileWarning, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, FileWarning, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export function SiteHeader() {
   return (
-    <header className="relative flex items-center justify-between border-b border-dashboard-line bg-white/95 px-5 py-4 shadow-sm backdrop-blur sm:px-8 lg:px-12">
-      <span
-        className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-dashboard-lime/60 to-transparent"
-        aria-hidden="true"
-      />
-
+    <header className="relative flex items-center justify-between border-b border-slate-200/80 bg-white/95 px-5 py-3.5 shadow-sm backdrop-blur sm:px-8 lg:px-12">
       <div className="flex items-center gap-3">
-        <span
-          className="grid size-9 place-items-center rounded-xl border border-dashboard-lime/30 bg-dashboard-navy text-dashboard-lime shadow-[0_2px_10px_-2px_rgba(9,37,65,0.45)] ring-1 ring-dashboard-navy/10"
-          aria-hidden="true"
-        >
-          <ShieldCheck size={18} strokeWidth={2.2} />
-        </span>
-        <div>
-          <div className="font-display text-sm font-semibold leading-tight text-dashboard-ink">MPLADS Intelligence</div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">National Oversight Platform</div>
+        <div className="flex size-8 items-center justify-center rounded-lg bg-[#0a2540] text-emerald-400 shadow-sm">
+          <ShieldCheck size={18} strokeWidth={2.4} />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="font-display text-sm font-bold tracking-wider text-slate-900 uppercase sm:text-base">
+            MPLADS Intelligence Platform
+          </span>
+          <span className="hidden rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 sm:inline-block">
+            MoSPI
+          </span>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         <Link
           href="/public"
-          className="group inline-flex items-center gap-1.5 rounded-full border border-dashboard-line bg-dashboard-surface px-3.5 py-1.5 text-xs font-bold text-dashboard-navy transition-all hover:border-dashboard-navy/40 hover:bg-white"
+          className="group inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white"
         >
           <span>Citizen Public Portal</span>
           <ArrowUpRight size={13} strokeWidth={2.2} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </Link>
+
         <Link
           href="/complaint"
-          className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50/80 px-3 py-1.5 text-xs font-bold text-red-700 transition-all hover:bg-red-100"
+          className="hidden items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50/80 px-3 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 sm:inline-flex"
         >
           <FileWarning size={13} />
           <span>Report Grievance</span>
         </Link>
-        <div className="hidden items-center gap-2 rounded-full border border-dashboard-line bg-dashboard-surface px-3 py-1.5 text-xs font-medium text-dashboard-muted md:flex">
-          <span className="relative flex size-1.5">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-dashboard-green/60" aria-hidden="true" />
-            <span className="relative size-1.5 rounded-full bg-dashboard-green" aria-hidden="true" />
+
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+            <span className="relative inline-flex size-2 rounded-full bg-emerald-600" />
           </span>
-          All systems operational
+          <span>Secure Access</span>
         </div>
       </div>
     </header>

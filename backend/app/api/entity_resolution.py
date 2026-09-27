@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.audit import log_audit_event
 from app.core.db import get_db
-from app.core.deps import get_current_user, require_role
+from app.core.deps import get_current_user, get_current_user_optional, require_role
 from app.models.entity_match import EntityMatch
 from app.models.enums import UserRole
 from app.models.project import Project
@@ -39,7 +39,7 @@ def _to_project_summary(p: Project) -> ProjectSummaryForMatch:
         external_project_id=p.external_project_id,
         project_name=p.project_name,
         description=p.description,
-        project_type=p.project_type.value if hasattr(p.project_type, "value") else str(p.project_type),
+        project_type=p.project_type.value if hasattr(p.project_type, "value") else str(p.project_type or ""),
         state=p.state,
         district=p.district,
         constituency=p.constituency,
@@ -52,7 +52,7 @@ def _to_project_summary(p: Project) -> ProjectSummaryForMatch:
         actual_completion_date=p.actual_completion_date,
         physical_progress=float(p.physical_progress or 0),
         financial_progress=float(p.financial_progress or 0),
-        status=p.status.value if hasattr(p.status, "value") else str(p.status),
+        status=p.status.value if hasattr(p.status, "value") else str(p.status or ""),
         contractor_name=p.contractor.name if p.contractor else None,
         latitude=p.latitude,
         longitude=p.longitude,
@@ -116,13 +116,18 @@ def trigger_entity_resolution(
 
 @router.get("/matches", response_model=list[EntityMatchOut])
 def list_entity_matches(
+    project_id: uuid.UUID | None = Query(default=None, description="Filter by project ID"),
     verdict: str | None = Query(default=None, description="Filter by MATCH or POSSIBLE_MATCH"),
     limit: int = Query(default=50, le=500),
     offset: int = 0,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    user: User | None = Depends(get_current_user_optional),
 ) -> list[EntityMatch]:
     query = db.query(EntityMatch)
+    if project_id:
+        query = query.filter(
+            (EntityMatch.source_project_id == project_id) | (EntityMatch.matched_project_id == project_id)
+        )
     if verdict:
         query = query.filter(EntityMatch.verdict == verdict.upper())
     return query.order_by(EntityMatch.match_confidence.desc()).offset(offset).limit(limit).all()
@@ -130,13 +135,18 @@ def list_entity_matches(
 
 @router.get("/matches/enriched", response_model=list[EntityMatchEnrichedOut])
 def list_enriched_entity_matches(
+    project_id: uuid.UUID | None = Query(default=None, description="Filter by project ID"),
     verdict: str | None = Query(default=None, description="Filter by MATCH or POSSIBLE_MATCH"),
     limit: int = Query(default=30, le=200),
     offset: int = 0,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    user: User | None = Depends(get_current_user_optional),
 ) -> list[EntityMatchEnrichedOut]:
     query = db.query(EntityMatch)
+    if project_id:
+        query = query.filter(
+            (EntityMatch.source_project_id == project_id) | (EntityMatch.matched_project_id == project_id)
+        )
     if verdict:
         query = query.filter(EntityMatch.verdict == verdict.upper())
     matches = query.order_by(EntityMatch.match_confidence.desc()).offset(offset).limit(limit).all()
@@ -146,10 +156,13 @@ def list_enriched_entity_matches(
         p_ids.add(m.source_project_id)
         p_ids.add(m.matched_project_id)
 
+    if not p_ids:
+        return []
+
     projects = (
         db.query(Project)
         .options(joinedload(Project.contractor))
-        .filter(Project.id.isin(p_ids))
+        .filter(Project.id.in_(p_ids))
         .all()
     )
     projects_by_id = {p.id: p for p in projects}
@@ -162,11 +175,74 @@ def list_enriched_entity_matches(
     return results
 
 
+@router.get("/projects/{project_id}/duplicates", response_model=list[EntityMatchEnrichedOut])
+def get_project_duplicates(
+    project_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    user: User | None = Depends(get_current_user_optional),
+) -> list[EntityMatchEnrichedOut]:
+    matches = (
+        db.query(EntityMatch)
+        .filter(
+            (EntityMatch.source_project_id == project_id) | (EntityMatch.matched_project_id == project_id)
+        )
+        .order_by(EntityMatch.match_confidence.desc())
+        .all()
+    )
+
+    p_ids = {project_id}
+    for m in matches:
+        p_ids.add(m.source_project_id)
+        p_ids.add(m.matched_project_id)
+
+    projects = (
+        db.query(Project)
+        .options(joinedload(Project.contractor))
+        .filter(Project.id.in_(p_ids))
+        .all()
+    )
+    projects_by_id = {p.id: p for p in projects}
+
+    current_project = projects_by_id.get(project_id)
+    if not current_project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    results: list[EntityMatchEnrichedOut] = []
+    for m in matches:
+        enriched = _enrich_match(m, projects_by_id)
+        if enriched:
+            results.append(enriched)
+
+    if not results and current_project.name_embedding is not None:
+        try:
+            from app.nlp.entity_resolution import find_candidates, compute_match
+            candidates = find_candidates(db, current_project, top_k=5)
+            for cand in candidates:
+                match_res = compute_match(current_project, cand)
+                if match_res["confidence"] >= 0.60:
+                    projects_by_id[cand.id] = cand
+                    temp_match = EntityMatch(
+                        id=uuid.uuid4(),
+                        source_project_id=current_project.id,
+                        matched_project_id=cand.id,
+                        match_confidence=match_res["confidence"],
+                        verdict=match_res["verdict"],
+                        matching_features=match_res["features"],
+                    )
+                    enriched = _enrich_match(temp_match, projects_by_id)
+                    if enriched:
+                        results.append(enriched)
+        except Exception:
+            pass
+
+    return results
+
+
 @router.get("/matches/{match_id}/enriched", response_model=EntityMatchEnrichedOut)
 def get_enriched_entity_match(
     match_id: uuid.UUID,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    user: User | None = Depends(get_current_user_optional),
 ) -> EntityMatchEnrichedOut:
     match = db.query(EntityMatch).filter(EntityMatch.id == match_id).first()
     if not match:
@@ -174,7 +250,7 @@ def get_enriched_entity_match(
     projects = (
         db.query(Project)
         .options(joinedload(Project.contractor))
-        .filter(Project.id.isin([match.source_project_id, match.matched_project_id]))
+        .filter(Project.id.in_([match.source_project_id, match.matched_project_id]))
         .all()
     )
     projects_by_id = {p.id: p for p in projects}

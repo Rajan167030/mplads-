@@ -7,7 +7,6 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
-  Bot,
   BriefcaseBusiness,
   ChevronDown,
   ChevronRight,
@@ -64,7 +63,7 @@ interface NavSection {
 const navSections: NavSection[] = [
   {
     id: "ai-fraud",
-    title: "AI & Fraud Detection",
+    title: "AI detection",
     icon: Sparkles,
     badge: "AI",
     items: [
@@ -75,18 +74,10 @@ const navSections: NavSection[] = [
         badge: "AI",
       },
       { label: "Risk & Alerts", icon: AlertTriangle, href: "/dashboard/risk-alerts" },
-      { label: "ML Evidence & Review", icon: SearchCheck, href: "/dashboard/ml-report" },
       {
         label: "Pattern Intelligence",
         icon: Activity,
         href: "/dashboard/patterns",
-        children: [
-          {
-            label: "Duplicate Sanction Pairs",
-            href: "/dashboard/patterns/duplicates",
-            icon: GitCompare,
-          },
-        ],
       },
       { label: "Contractor Intelligence", icon: Network, href: "/dashboard/contractors" },
     ],
@@ -108,7 +99,6 @@ const navSections: NavSection[] = [
     items: [
       { label: "Investigations", icon: BriefcaseBusiness, href: "/dashboard/investigations" },
       { label: "Citizen Complaints", icon: MessageSquareWarning, href: "/dashboard/complaints" },
-      { label: "AI Copilot Assistant", icon: Bot, href: "/dashboard/assistant", badge: "Live" },
     ],
   },
   {
@@ -116,7 +106,7 @@ const navSections: NavSection[] = [
     title: "System & Governance",
     icon: Settings2,
     items: [
-      { label: "Audit Reports", icon: FileBarChart, href: "/dashboard/reports" },
+      
       { label: "Data Quality", icon: ClipboardCheck, href: "/dashboard/data-quality" },
       { label: "User Management", icon: Users, href: "/dashboard/users", ministryOnly: true },
     ],
@@ -447,9 +437,7 @@ export function DashboardSidebar() {
                         </span>
                       )}
 
-                      <span className="rounded bg-white/5 px-1.5 py-0.5 text-[9px] font-medium text-white/40 group-hover:text-white/60">
-                        {visibleItems.length}
-                      </span>
+
 
                       <ChevronDown
                         size={13}

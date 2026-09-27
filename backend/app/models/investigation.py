@@ -34,3 +34,6 @@ class Investigation(UUIDPKMixin, TimestampMixin, Base):
 
     project: Mapped["Project"] = relationship()
     assignee: Mapped["User | None"] = relationship(foreign_keys=[assigned_to])
+    reviews: Mapped[list["InvestigationReview"]] = relationship(
+        back_populates="investigation", order_by="InvestigationReview.created_at.desc()"
+    )

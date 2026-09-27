@@ -18,10 +18,11 @@ const VERDICT_COLORS: Record<string, string> = {
   POSSIBLE_MATCH: "bg-amber-100 text-amber-800 border-amber-200",
 };
 
-function formatInr(amount: number) {
-  if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(2)} Cr`;
-  if (amount >= 100000) return `₹${(amount / 100000).toFixed(2)} Lakh`;
-  return `₹${amount.toLocaleString("en-IN")}`;
+function formatInr(amount: number | null | undefined) {
+  const val = amount ?? 0;
+  if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;
+  if (val >= 100000) return `₹${(val / 100000).toFixed(2)} Lakh`;
+  return `₹${val.toLocaleString("en-IN")}`;
 }
 
 function ConfidenceMeter({ value }: { value: number }) {

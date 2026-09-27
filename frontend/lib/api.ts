@@ -1072,13 +1072,21 @@ export interface EntityMatchEnriched {
   diff_metrics: MatchDifferenceMetrics;
 }
 
-export function getEnrichedEntityMatches(params?: { verdict?: string; limit?: number; offset?: number }, token?: string) {
+export function getEnrichedEntityMatches(
+  params?: { project_id?: string; verdict?: string; limit?: number; offset?: number },
+  token?: string
+) {
   const query = new URLSearchParams();
+  if (params?.project_id) query.set("project_id", params.project_id);
   if (params?.verdict) query.set("verdict", params.verdict);
   if (params?.limit) query.set("limit", String(params.limit));
   if (params?.offset) query.set("offset", String(params.offset));
   const qs = query.toString();
   return maybeAuthRequest<EntityMatchEnriched[]>(`/entity-resolution/matches/enriched${qs ? `?${qs}` : ""}`, token);
+}
+
+export function getProjectDuplicates(projectId: string, token?: string) {
+  return maybeAuthRequest<EntityMatchEnriched[]>(`/entity-resolution/projects/${projectId}/duplicates`, token);
 }
 
 export function getEnrichedEntityMatch(matchId: string, token?: string) {
@@ -1098,4 +1106,46 @@ export interface AuditLogEntry {
 
 export function getInvestigationAuditLog(investigationId: string, token: string) {
   return authRequest<AuditLogEntry[]>(`/investigations/${investigationId}/audit-log`, token);
+}
+
+// --- Investigation Center (single investigation detail) ---
+
+export function getInvestigation(investigationId: string, token: string) {
+  return authRequest<Investigation>(`/investigations/${investigationId}`, token);
+}
+
+// --- Investigation Reviews ---
+
+export interface InvestigationReview {
+  id: string;
+  investigation_id: string;
+  reviewer_id: string;
+  reviewer_name: string;
+  reviewer_role: string;
+  verdict: string;
+  findings: string;
+  recommendation: string | null;
+  evidence_references: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export function listInvestigationReviews(investigationId: string, token: string) {
+  return authRequest<InvestigationReview[]>(`/investigations/${investigationId}/reviews`, token);
+}
+
+export function createInvestigationReview(
+  investigationId: string,
+  token: string,
+  payload: {
+    verdict: string;
+    findings: string;
+    recommendation?: string;
+    evidence_references?: string;
+  }
+) {
+  return authRequest<InvestigationReview>(`/investigations/${investigationId}/reviews`, token, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }

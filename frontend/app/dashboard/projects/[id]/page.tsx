@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { GitCompare } from "lucide-react";
 
-import { ApiError, explainRisk, getProject, getProjectTimeline, getRelatedProjects } from "@/lib/api";
+import { ApiError, explainRisk, getProject, getProjectDuplicates, getProjectTimeline, getRelatedProjects } from "@/lib/api";
 import { ForensicDossierButton } from "@/components/investigations/forensic-dossier-button";
+import { ProjectDuplicatesSection } from "@/components/projects/project-duplicates-section";
 
 const SEVERITY_STYLES: Record<string, string> = {
   CRITICAL: "bg-red-50 text-red-700 border-red-200",
@@ -34,15 +36,17 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     throw err;
   }
 
-  const [timelineResult, explanationResult, relatedResult] = await Promise.allSettled([
+  const [timelineResult, explanationResult, relatedResult, duplicatesResult] = await Promise.allSettled([
     getProjectTimeline(id, token),
     explainRisk(id, token),
     getRelatedProjects(id, 5, token),
+    getProjectDuplicates(id, token),
   ]);
 
   const timeline = timelineResult.status === "fulfilled" ? timelineResult.value : null;
   const explanation = explanationResult.status === "fulfilled" ? explanationResult.value : null;
   const related = relatedResult.status === "fulfilled" ? relatedResult.value : [];
+  const duplicates = duplicatesResult.status === "fulfilled" ? (duplicatesResult.value ?? []) : [];
 
   return (
     <main className="min-h-screen bg-dashboard-surface px-4 py-6 sm:px-6 lg:px-8">
@@ -68,7 +72,25 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               {project.mp_name && <> · MP: {project.mp_name}</>}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="#duplicates-section"
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold shadow-sm transition ${
+                duplicates.length > 0
+                  ? "border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100 ring-1 ring-rose-300"
+                  : "border-dashboard-line bg-white text-dashboard-navy hover:bg-dashboard-surface"
+              }`}
+            >
+              <GitCompare size={14} className={duplicates.length > 0 ? "text-rose-600" : "text-dashboard-navy"} />
+              <span>Duplicates</span>
+              <span
+                className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                  duplicates.length > 0 ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-700"
+                }`}
+              >
+                {duplicates.length}
+              </span>
+            </a>
             <ForensicDossierButton projectId={project.id} />
             {project.risk_band && project.risk_score !== null && (
               <span className={`rounded-lg border px-4 py-2 text-center ${SEVERITY_STYLES[project.risk_band] ?? ""}`}>
@@ -195,6 +217,12 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             )}
           </section>
         </div>
+
+        <ProjectDuplicatesSection
+          projectId={project.id}
+          projectName={project.project_name}
+          initialMatches={duplicates}
+        />
 
         {timeline && (
           <section className="mt-5 rounded-lg bg-white p-5 shadow-sm">

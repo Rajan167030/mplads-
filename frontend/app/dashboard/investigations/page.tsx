@@ -446,7 +446,7 @@ export default function InvestigationsPage() {
                   <tr key={inv.id} className="border-b border-dashboard-line/60 last:border-0">
                     <td className="px-4 py-3">
                       <Link
-                        href={`/dashboard/projects/${inv.project_id}`}
+                        href={`/dashboard/investigations/${inv.id}`}
                         className="flex items-center gap-1 font-semibold text-dashboard-navy hover:underline"
                       >
                         {inv.project_name}
@@ -526,15 +526,24 @@ export default function InvestigationsPage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      {token && (
-                        <button
-                          onClick={() => setAuditTarget(inv.id)}
-                          className="inline-flex items-center gap-1 rounded border border-dashboard-line px-2 py-1 text-[10px] font-semibold text-dashboard-muted hover:border-dashboard-navy hover:text-dashboard-navy transition"
-                          title="View audit trail"
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          href={`/dashboard/investigations/${inv.id}`}
+                          className="inline-flex items-center gap-1 rounded border border-dashboard-navy/30 bg-dashboard-navy/5 px-2 py-1 text-[10px] font-semibold text-dashboard-navy hover:bg-dashboard-navy/10 transition"
+                          title="Open Investigation Center"
                         >
-                          <ScrollText size={12} /> Audit Log
-                        </button>
-                      )}
+                          <Shield size={12} /> Center
+                        </Link>
+                        {token && (
+                          <button
+                            onClick={() => setAuditTarget(inv.id)}
+                            className="inline-flex items-center gap-1 rounded border border-dashboard-line px-2 py-1 text-[10px] font-semibold text-dashboard-muted hover:border-dashboard-navy hover:text-dashboard-navy transition"
+                            title="View audit trail"
+                          >
+                            <ScrollText size={12} /> Audit Log
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

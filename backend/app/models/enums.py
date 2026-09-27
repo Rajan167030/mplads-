@@ -129,3 +129,10 @@ class ComplaintStatus(str, enum.Enum):
     UNDER_REVIEW = "UNDER_REVIEW"
     RESOLVED = "RESOLVED"
     DISMISSED = "DISMISSED"
+
+
+class ReviewVerdict(str, enum.Enum):
+    APPROVE = "APPROVE"
+    REJECT = "REJECT"
+    NEEDS_MORE_INFO = "NEEDS_MORE_INFO"
+    ESCALATE = "ESCALATE"

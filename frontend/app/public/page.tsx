@@ -80,7 +80,6 @@ function crore(amount: number) {
 
 const NAV_LINKS: [string, string][] = [
   ["Overview", "#top"],
-  ["How it Works", "#how-it-works"],
   ["Fund Journey", "#fund-journey"],
   ["Sector Impact", "#impact"],
   ["Find My Area", "#my-area"],
@@ -260,7 +259,6 @@ export default async function PublicPortalPage({
                 </div>
                 {[
                   { label: "Overview", href: "#top", icon: Building2 },
-                  { label: "How it Works", href: "#how-it-works", icon: HelpCircle },
                   { label: "Fund Journey", href: "#fund-journey", icon: TrendingUp },
                   { label: "Sector Impact", href: "#impact", icon: Layers },
                   { label: "Find My Area", href: "#my-area", icon: MapPin },
@@ -308,7 +306,6 @@ export default async function PublicPortalPage({
             >
               {[
                 { label: "Overview", href: "#top", icon: Building2 },
-                { label: "How it Works", href: "#how-it-works", icon: HelpCircle },
                 { label: "Fund Journey", href: "#fund-journey", icon: TrendingUp },
                 { label: "Sector Impact", href: "#impact", icon: Layers },
                 { label: "Find My Area", href: "#my-area", icon: MapPin },
@@ -869,7 +866,6 @@ export default async function PublicPortalPage({
               <div className="font-bold text-slate-900 uppercase tracking-wider text-[10px]">Quick Links</div>
               <ul className="mt-2.5 space-y-1.5 text-slate-500">
                 <li><a href="#top" className="hover:text-dashboard-navy">Overview</a></li>
-                <li><a href="#how-it-works" className="hover:text-dashboard-navy">How it Works</a></li>
                 <li><a href="#my-area" className="hover:text-dashboard-navy">Find My Area</a></li>
                 <li><a href="#mp-accountability" className="hover:text-dashboard-navy">MP Performance</a></li>
               </ul>

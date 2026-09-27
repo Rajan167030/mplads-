@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.audit import log_audit_event
@@ -13,13 +14,16 @@ from app.models.enums import (
     EscalationLevel,
     InvestigationResolution,
     InvestigationStatus,
+    ReviewVerdict,
     Severity,
     UserRole,
 )
 from app.models.investigation import Investigation
 from app.models.project import Project
+from app.models.review import InvestigationReview
 from app.models.user import User
 from app.schemas.investigation import InvestigationCreate, InvestigationOut, InvestigationUpdate
+from app.schemas.review import ReviewCreate, ReviewOut
 
 router = APIRouter(prefix="/investigations", tags=["investigations"])
 
@@ -35,6 +39,7 @@ def _out(inv: Investigation) -> InvestigationOut:
         and inv.current_level == EscalationLevel.DISTRICT
         and datetime.now(timezone.utc) - inv.created_at > ESCALATION_OVERDUE_AFTER
     )
+    review_count = len(inv.reviews) if "reviews" in inv.__dict__ else 0
     return InvestigationOut(
         id=inv.id,
         project_id=inv.project_id,
@@ -205,3 +210,96 @@ def get_investigation_audit_log(
         for log in logs
     ]
 
+
+# ─── Single Investigation Detail (Investigation Center) ──────────────────────
+
+@router.get("/{investigation_id}", response_model=InvestigationOut)
+def get_investigation(
+    investigation_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> InvestigationOut:
+    """Fetch a single investigation with full detail for the Investigation Center."""
+    investigation = (
+        db.query(Investigation)
+        .options(joinedload(Investigation.project), joinedload(Investigation.assignee), joinedload(Investigation.reviews))
+        .filter(Investigation.id == investigation_id)
+        .first()
+    )
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+    return _out(investigation)
+
+
+# ─── Reviews CRUD ─────────────────────────────────────────────────────────────
+
+def _review_out(r: InvestigationReview) -> ReviewOut:
+    return ReviewOut(
+        id=r.id,
+        investigation_id=r.investigation_id,
+        reviewer_id=r.reviewer_id,
+        reviewer_name=r.reviewer.full_name if r.reviewer else "Unknown",
+        reviewer_role=r.reviewer.role.value if r.reviewer else "UNKNOWN",
+        verdict=r.verdict.value,
+        findings=r.findings,
+        recommendation=r.recommendation,
+        evidence_references=r.evidence_references,
+        created_at=r.created_at,
+        updated_at=r.updated_at,
+    )
+
+
+@router.get("/{investigation_id}/reviews", response_model=list[ReviewOut])
+def list_reviews(
+    investigation_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[ReviewOut]:
+    """List all reviews for an investigation, most recent first."""
+    investigation = db.get(Investigation, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    reviews = (
+        db.query(InvestigationReview)
+        .options(joinedload(InvestigationReview.reviewer))
+        .filter(InvestigationReview.investigation_id == investigation_id)
+        .order_by(InvestigationReview.created_at.desc())
+        .limit(100)
+        .all()
+    )
+    return [_review_out(r) for r in reviews]
+
+
+@router.post("/{investigation_id}/reviews", response_model=ReviewOut)
+def create_review(
+    investigation_id: str,
+    payload: ReviewCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_role(UserRole.DISTRICT_AUTHORITY, UserRole.STATE_NODAL, UserRole.MINISTRY)),
+) -> ReviewOut:
+    """Add a review finding to an investigation."""
+    investigation = db.get(Investigation, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    if payload.verdict.upper() not in ReviewVerdict.__members__:
+        raise HTTPException(status_code=422, detail=f"Invalid verdict: {payload.verdict!r}")
+
+    review = InvestigationReview(
+        investigation_id=uuid.UUID(investigation_id),
+        reviewer_id=user.id,
+        verdict=ReviewVerdict[payload.verdict.upper()],
+        findings=payload.findings,
+        recommendation=payload.recommendation,
+        evidence_references=payload.evidence_references,
+    )
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+
+    log_audit_event(
+        db, user.id, "ADD_REVIEW", "Investigation", investigation.id,
+        {"review_id": str(review.id), "verdict": payload.verdict.upper()},
+    )
+    return _review_out(review)

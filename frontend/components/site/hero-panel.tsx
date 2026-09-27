@@ -1,18 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { CheckCircle2, ShieldCheck, ArrowRight, Activity } from "lucide-react";
 import { getPatternSummary } from "@/lib/api";
 
 const POLL_INTERVAL_MS = 20_000;
-
-const features = [
-  "Financial, execution & spatial signals combined",
-  "Multilingual entity resolution across records",
-  "Explainable risk assessment & audit trails",
-];
-
-const workflow = ["MPLADS DATA", "FINANCIAL · EXECUTION · SPATIAL SIGNALS", "RISK SCORE", "INVESTIGATION", "ACTION"];
 
 function prefersReducedMotion() {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -56,149 +48,133 @@ export interface LiveSignal {
   count: number;
 }
 
-function useLiveSignals(initial: LiveSignal[]) {
-  const [signals, setSignals] = useState(initial);
+const keyFeatures = [
+  "AI-powered anomaly & risk detection",
+  "Project progress & delay monitoring",
+  "Explainable risk assessment & audit trails",
+];
 
-  useEffect(() => {
-    let cancelled = false;
+const workflowSteps = [
+  "MPLADS DATA",
+  "AI ANALYSIS",
+  "RISK DETECTION",
+  "INVESTIGATION",
+  "ACTION",
+];
 
-    async function refresh() {
-      try {
-        const result = await getPatternSummary();
-        const top = result.patterns
-          .slice()
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 3)
-          .map((p) => ({ signalType: p.signal_type, count: p.count }));
-        if (!cancelled && top.length > 0) setSignals(top);
-      } catch {
-        // Keep showing the last-known-good signals rather than clearing them
-        // on a transient network blip — this is a live indicator, not a form.
-      }
-    }
-
-    const interval = setInterval(refresh, POLL_INTERVAL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, []);
-
-  return signals;
-}
-
-export function HeroPanel({ stats, initialSignals }: { stats: HeroStats | null; initialSignals: LiveSignal[] }) {
-  const signals = useLiveSignals(initialSignals);
+export function HeroPanel({
+  stats,
+  initialSignals,
+}: {
+  stats: HeroStats | null;
+  initialSignals: LiveSignal[];
+}) {
   return (
-    <section className="relative flex min-h-155 flex-col justify-between overflow-hidden bg-dashboard-navy px-6 py-10 sm:px-10 lg:min-h-0 lg:w-1/2 lg:px-14 lg:py-14">
+    <section className="relative flex w-full flex-col justify-between overflow-hidden bg-[#0a2540] text-white p-6 sm:p-10 lg:w-[45%] lg:p-12 xl:p-14">
+      {/* Subtle Dot Grid Background */}
       <div
-        className="pointer-events-none absolute inset-0"
-        style={{ background: "radial-gradient(60% 55% at 78% 22%, rgba(141,252,117,0.10), transparent 70%)" }}
+        className="pointer-events-none absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: "radial-gradient(#d2e4ff 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+        aria-hidden="true"
+      />
+      {/* Ambient Gradient Glow */}
+      <div
+        className="pointer-events-none absolute -left-24 -top-24 size-96 rounded-full bg-emerald-500/10 blur-3xl"
         aria-hidden="true"
       />
 
-      <div className="relative z-10 my-auto max-w-xl">
-        <span className="inline-flex items-center gap-2 rounded-full border border-dashboard-lime/25 bg-dashboard-lime/10 px-3 py-1 text-xs font-medium text-dashboard-lime">
-          Live for FY 2025–26
-        </span>
-
-        <h1 className="mt-6 whitespace-normal font-display text-4xl font-semibold leading-tight tracking-tight text-white sm:whitespace-nowrap sm:text-5xl">
-          Public funds,
-          <br />
-          accounted for.
-        </h1>
-
-        <p className="mt-5 max-w-md text-sm leading-7 text-white/65 sm:text-base">
-          MPLADS Intelligence cross-checks the financial, execution, and spatial record of every sanctioned
-          project, and surfaces the ones that warrant a closer look — before the money&apos;s already spent.
-        </p>
-
-        <div className="mt-9 flex divide-x divide-white/10 border-y border-white/10 py-6">
-          <div className="flex-1 pr-5">
-            <div className="font-console-mono text-2xl font-medium tabular-nums text-white">
-              {stats ? <CountUp target={stats.totalProjects} /> : "—"}
-            </div>
-            <div className="mt-1 text-xs text-white/45">Projects monitored</div>
+      <div className="relative z-10 my-auto flex flex-col gap-6 max-w-xl">
+        {/* Government Badge & Header */}
+        <div className="flex items-center gap-3.5">
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl border border-blue-200/20 bg-[#0a2540] text-emerald-400 shadow-xl ring-1 ring-white/10">
+            <ShieldCheck size={30} strokeWidth={2.2} />
           </div>
-          <div className="flex-1 px-5">
-            <div className="font-console-mono text-2xl font-medium tabular-nums text-white">
-              {stats ? <CountUp target={stats.fundsTrackedCr} suffix=" Cr" /> : "—"}
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-200">
+              Government of India
             </div>
-            <div className="mt-1 text-xs text-white/45">Funds tracked (₹)</div>
-          </div>
-          <div className="flex-1 pl-5">
-            <div className="font-console-mono text-2xl font-medium tabular-nums text-dashboard-orange">
-              {stats ? <CountUp target={stats.flaggedForReview} /> : "—"}
-            </div>
-            <div className="mt-1 text-xs text-white/45">Flagged for review</div>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-white lg:text-3xl">
+              MPLADS Intelligence
+            </h1>
           </div>
         </div>
 
-        <div className="mt-8 hidden items-start gap-10 sm:flex">
-          <div className="relative h-[200px] w-[200px] shrink-0" aria-hidden="true">
-            <div className="absolute inset-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.02]">
-              <div className="absolute inset-[34px] rounded-full border border-white/10" />
-              <div className="absolute inset-[68px] rounded-full border border-white/10" />
-              <div
-                className="console-radar-sweep absolute inset-0"
-                style={{
-                  background:
-                    "conic-gradient(from 0deg, rgba(141,252,117,0.5), rgba(141,252,117,0) 26%, rgba(141,252,117,0) 100%)",
-                }}
-              />
-            </div>
-            <span className="console-signal-dot absolute left-[128px] top-[54px] size-[7px] rounded-full bg-dashboard-lime" />
-            <span
-              className="console-signal-dot absolute left-[52px] top-[118px] size-[7px] rounded-full bg-dashboard-orange"
-              style={{ animationDelay: "0.6s" }}
-            />
-            <span className="console-signal-dot absolute left-[138px] top-[148px] size-[7px] rounded-full bg-dashboard-lime" style={{ animationDelay: "1.3s" }} />
-          </div>
-
-          <div className="flex flex-col gap-3 pt-2">
-            {signals.map((signal) => (
-              <span
-                key={signal.signalType}
-                className="flex items-center justify-between gap-3 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1.5 font-console-mono text-[11px] text-white/55"
-              >
-                {signal.signalType}
-                <span className="text-white/75">{signal.count.toLocaleString("en-IN")}</span>
-              </span>
-            ))}
-          </div>
+        {/* Tagline & Description */}
+        <div className="space-y-2">
+          <p className="font-display text-lg font-bold text-blue-100 sm:text-xl">
+            AI-Powered Public Fund Monitoring &amp; Accountability
+          </p>
+          <p className="text-sm leading-relaxed text-slate-300">
+            An AI-powered platform for monitoring MPLADS projects, detecting anomalies, identifying implementation risks, and improving transparency in public fund utilization.
+          </p>
         </div>
 
-        <div className="mt-9 space-y-2.5">
-          {features.map((feature) => (
+        {/* Key Feature Badges */}
+        <div className="flex flex-col gap-2.5 pt-1">
+          {keyFeatures.map((feature) => (
             <div
               key={feature}
-              className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white/70"
+              className="flex items-center gap-2.5 rounded-xl border border-blue-200/15 bg-white/[0.05] px-3.5 py-2.5 backdrop-blur-sm"
             >
-              <span className="text-dashboard-lime" aria-hidden="true">
-                ◉
+              <CheckCircle2 size={18} className="shrink-0 text-emerald-400" />
+              <span className="text-xs font-medium text-white sm:text-sm">
+                {feature}
               </span>
-              {feature}
             </div>
           ))}
         </div>
 
-        <div className="mt-8">
-          <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-white/40">
-            Workflow process
+        {/* Live Counters */}
+        <div className="mt-2 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-3 text-center">
+          <div>
+            <div className="font-mono text-lg font-bold text-white sm:text-xl">
+              {stats ? <CountUp target={stats.totalProjects} /> : "—"}
+            </div>
+            <div className="text-[10px] text-slate-400 sm:text-[11px]">Projects Tracked</div>
           </div>
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-2 overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] px-3 py-3 font-console-mono text-[9px] font-medium text-dashboard-lime sm:text-[10px]">
-            {workflow.map((step, index) => (
-              <span key={step} className="flex min-w-0 items-center gap-2 whitespace-normal break-words">
-                {step}
-                {index < workflow.length - 1 && (
-                  <span className="text-white/35" aria-hidden="true">
-                    →
-                  </span>
+          <div className="border-x border-white/10">
+            <div className="font-mono text-lg font-bold text-white sm:text-xl">
+              {stats ? <CountUp target={stats.fundsTrackedCr} suffix=" Cr" /> : "—"}
+            </div>
+            <div className="text-[10px] text-slate-400 sm:text-[11px]">Funds Tracked</div>
+          </div>
+          <div>
+            <div className="font-mono text-lg font-bold text-amber-400 sm:text-xl">
+              {stats ? <CountUp target={stats.flaggedForReview} /> : "—"}
+            </div>
+            <div className="text-[10px] text-slate-400 sm:text-[11px]">Flagged Anomalies</div>
+          </div>
+        </div>
+
+        {/* Workflow Process Indicator */}
+        <div className="pt-2">
+          <div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-blue-200">
+            Workflow Process
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-blue-200/15 bg-white/[0.04] p-2.5 font-mono text-[10px] sm:text-xs">
+            {workflowSteps.map((step, idx) => (
+              <span key={step} className="flex items-center gap-1.5">
+                <span className="font-semibold text-emerald-400">{step}</span>
+                {idx < workflowSteps.length - 1 && (
+                  <span className="text-slate-500">→</span>
                 )}
               </span>
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Bottom Footer Callout */}
+      <div className="relative z-10 mt-8 border-t border-white/10 pt-4">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-blue-200">
+          Government Monitoring &amp; Decision Support System
+        </div>
+        <p className="mt-0.5 text-xs italic text-slate-400">
+          &ldquo;Turning public project data into actionable insights for better monitoring and accountability.&rdquo;
+        </p>
       </div>
     </section>
   );
