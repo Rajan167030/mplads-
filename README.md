@@ -15,7 +15,7 @@ Database is already hosted on Supabase — no Docker/local Postgres needed. Full
 # Backend (FastAPI) — http://localhost:8000, docs at /docs
 cd backend
 python -m venv .venv
-./.venv/Scripts/activate       # Windows; use `source .venv/bin/activate` on macOS/Linux
+ .venv/Scripts/activate      # Windows; use `source .venv/bin/activate` on macOS/Linux
 pip install -r requirements.txt
 cp ../.env.example .env        # then set DATABASE_URL to your own Postgres/Supabase instance
 uvicorn app.main:app --reload

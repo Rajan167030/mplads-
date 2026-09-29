@@ -15,16 +15,29 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg2://mplads:mplads@localhost:5433/mplads"
 
-    cors_origins: list[str] = ["http://localhost:3000"]
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://mplads-kappa.vercel.app",
+    ]
 
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _parse_cors_origins(cls, value: object) -> object:
-        # Accept either a JSON array (`["https://a.com","https://b.com"]`) or a
-        # plain comma-separated string (`https://a.com,https://b.com`), since
-        # host env-var UIs (e.g. Render) don't always let you enter JSON.
-        if isinstance(value, str) and not value.strip().startswith("["):
-            return [origin.strip() for origin in value.split(",") if origin.strip()]
+        import json
+        # Accept JSON array string, comma-separated string, or Python list
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.startswith("[") and stripped.endswith("]"):
+                try:
+                    value = json.loads(stripped)
+                except Exception:
+                    pass
+            else:
+                value = [origin.strip() for origin in stripped.split(",") if origin.strip()]
+        if isinstance(value, list):
+            # Origins in CORS should never have a trailing slash
+            return [str(origin).strip().rstrip("/") for origin in value if str(origin).strip()]
         return value
 
     # LLM provider abstraction (see app.services.llm) — no provider is hard-coded.

@@ -1,4 +1,18 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+function getBaseApiUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (!envUrl) return "http://localhost:8000/api";
+
+  // Remove any trailing slashes
+  const clean = envUrl.replace(/\/+$/, "");
+
+  // If provided without the /api prefix, append /api automatically
+  if (!clean.endsWith("/api")) {
+    return `${clean}/api`;
+  }
+  return clean;
+}
+
+const API_URL = getBaseApiUrl();
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
